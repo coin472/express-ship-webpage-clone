@@ -18,7 +18,10 @@ import {
   Mail,
   Truck,
   DollarSign,
-  Activity
+  Activity,
+  Edit,
+  Trash2,
+  UserPlus
 } from "lucide-react";
 import { Navigate } from "react-router-dom";
 
@@ -32,24 +35,122 @@ const AdminPanel = () => {
     return <Navigate to="/admin-login" replace />;
   }
 
-  // Mock data
-  const [users] = useState([
+  // Mock data with state management
+  const [users, setUsers] = useState([
     { id: 1, name: "John Doe", email: "john@example.com", role: "user", status: "active" },
     { id: 2, name: "Jane Smith", email: "jane@example.com", role: "user", status: "active" },
     { id: 3, name: "Bob Wilson", email: "bob@example.com", role: "user", status: "inactive" },
   ]);
 
-  const [shipments] = useState([
+  const [shipments, setShipments] = useState([
     { id: "ES123456789", customer: "John Doe", destination: "New York", status: "In Transit", date: "2024-01-15" },
     { id: "ES987654321", customer: "Jane Smith", destination: "Los Angeles", status: "Delivered", date: "2024-01-14" },
     { id: "ES456789123", customer: "Bob Wilson", destination: "Chicago", status: "Processing", date: "2024-01-16" },
   ]);
 
+  const [siteSettings, setSiteSettings] = useState({
+    siteName: "ExpressShip",
+    contactEmail: "info@expressship.com",
+    maintenanceMode: "off"
+  });
+
+  // Stats
+  const [stats] = useState({
+    totalUsers: 1234,
+    activeShipments: 567,
+    revenue: 45200,
+    deliveryRate: 98.5
+  });
+
   const handleSendNotification = () => {
+    console.log('Sending system notification');
     toast({
       title: "Notification Sent",
       description: "System-wide notification has been sent to all users."
     });
+  };
+
+  const handleCreateShipment = () => {
+    console.log('Creating new shipment');
+    toast({
+      title: "Feature Available",
+      description: "Redirecting to shipment creation form..."
+    });
+  };
+
+  const handleGenerateReport = () => {
+    console.log('Generating report');
+    toast({
+      title: "Report Generated",
+      description: "Monthly report has been generated and will be emailed to you."
+    });
+  };
+
+  const handleEditUser = (userId: number) => {
+    console.log('Editing user:', userId);
+    const user = users.find(u => u.id === userId);
+    toast({
+      title: "Edit User",
+      description: `Editing user: ${user?.name}`
+    });
+  };
+
+  const handleDeleteUser = (userId: number) => {
+    console.log('Deleting user:', userId);
+    const user = users.find(u => u.id === userId);
+    setUsers(users.filter(u => u.id !== userId));
+    toast({
+      title: "User Deleted",
+      description: `User ${user?.name} has been removed.`,
+      variant: "destructive"
+    });
+  };
+
+  const handleAddUser = () => {
+    console.log('Adding new user');
+    const newUser = {
+      id: users.length + 1,
+      name: "New User",
+      email: "newuser@example.com",
+      role: "user",
+      status: "active"
+    };
+    setUsers([...users, newUser]);
+    toast({
+      title: "User Added",
+      description: "New user has been added to the system."
+    });
+  };
+
+  const handleUpdateShipment = (shipmentId: string) => {
+    console.log('Updating shipment:', shipmentId);
+    const shipment = shipments.find(s => s.id === shipmentId);
+    
+    // Cycle through statuses
+    const statusCycle = ["Processing", "In Transit", "Delivered"];
+    const currentIndex = statusCycle.indexOf(shipment?.status || "Processing");
+    const nextStatus = statusCycle[(currentIndex + 1) % statusCycle.length];
+    
+    setShipments(shipments.map(s => 
+      s.id === shipmentId ? { ...s, status: nextStatus } : s
+    ));
+    
+    toast({
+      title: "Shipment Updated",
+      description: `Shipment ${shipmentId} status changed to ${nextStatus}`
+    });
+  };
+
+  const handleSaveSettings = () => {
+    console.log('Saving settings:', siteSettings);
+    toast({
+      title: "Settings Saved",
+      description: "Website settings have been updated successfully."
+    });
+  };
+
+  const handleSettingChange = (field: string, value: string) => {
+    setSiteSettings(prev => ({ ...prev, [field]: value }));
   };
 
   const renderDashboard = () => (
@@ -60,7 +161,7 @@ const AdminPanel = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Total Users</p>
-                <p className="text-2xl font-bold">1,234</p>
+                <p className="text-2xl font-bold">{stats.totalUsers.toLocaleString()}</p>
               </div>
               <Users className="h-8 w-8 text-blue-600" />
             </div>
@@ -72,7 +173,7 @@ const AdminPanel = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Active Shipments</p>
-                <p className="text-2xl font-bold">567</p>
+                <p className="text-2xl font-bold">{stats.activeShipments}</p>
               </div>
               <Package className="h-8 w-8 text-yellow-600" />
             </div>
@@ -84,7 +185,7 @@ const AdminPanel = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Revenue</p>
-                <p className="text-2xl font-bold">$45.2K</p>
+                <p className="text-2xl font-bold">${(stats.revenue / 1000).toFixed(1)}K</p>
               </div>
               <DollarSign className="h-8 w-8 text-green-600" />
             </div>
@@ -96,7 +197,7 @@ const AdminPanel = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Delivery Rate</p>
-                <p className="text-2xl font-bold">98.5%</p>
+                <p className="text-2xl font-bold">{stats.deliveryRate}%</p>
               </div>
               <Activity className="h-8 w-8 text-red-600" />
             </div>
@@ -145,11 +246,11 @@ const AdminPanel = () => {
               <Mail className="mr-2 h-4 w-4" />
               Send System Notification
             </Button>
-            <Button variant="outline" className="w-full">
+            <Button onClick={handleCreateShipment} variant="outline" className="w-full">
               <Package className="mr-2 h-4 w-4" />
               Create New Shipment
             </Button>
-            <Button variant="outline" className="w-full">
+            <Button onClick={handleGenerateReport} variant="outline" className="w-full">
               <BarChart3 className="mr-2 h-4 w-4" />
               Generate Report
             </Button>
@@ -160,102 +261,157 @@ const AdminPanel = () => {
   );
 
   const renderUserManagement = () => (
-    <Card>
-      <CardHeader>
-        <CardTitle>User Management</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Name</TableHead>
-              <TableHead>Email</TableHead>
-              <TableHead>Role</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {users.map((user) => (
-              <TableRow key={user.id}>
-                <TableCell>{user.name}</TableCell>
-                <TableCell>{user.email}</TableCell>
-                <TableCell>{user.role}</TableCell>
-                <TableCell>{user.status}</TableCell>
-                <TableCell>
-                  <Button variant="outline" size="sm">
-                    Edit
-                  </Button>
-                </TableCell>
+    <div className="space-y-4">
+      <div className="flex justify-between items-center">
+        <h2 className="text-2xl font-bold">User Management</h2>
+        <Button onClick={handleAddUser}>
+          <UserPlus className="mr-2 h-4 w-4" />
+          Add User
+        </Button>
+      </div>
+      
+      <Card>
+        <CardContent className="p-0">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Name</TableHead>
+                <TableHead>Email</TableHead>
+                <TableHead>Role</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Actions</TableHead>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </CardContent>
-    </Card>
+            </TableHeader>
+            <TableBody>
+              {users.map((user) => (
+                <TableRow key={user.id}>
+                  <TableCell>{user.name}</TableCell>
+                  <TableCell>{user.email}</TableCell>
+                  <TableCell>{user.role}</TableCell>
+                  <TableCell>
+                    <span className={`px-2 py-1 rounded-full text-xs ${
+                      user.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                    }`}>
+                      {user.status}
+                    </span>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex space-x-2">
+                      <Button 
+                        onClick={() => handleEditUser(user.id)}
+                        variant="outline" 
+                        size="sm"
+                      >
+                        <Edit className="h-3 w-3" />
+                      </Button>
+                      <Button 
+                        onClick={() => handleDeleteUser(user.id)}
+                        variant="outline" 
+                        size="sm"
+                        className="text-red-600"
+                      >
+                        <Trash2 className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
+    </div>
   );
 
   const renderShipmentManagement = () => (
-    <Card>
-      <CardHeader>
-        <CardTitle>Shipment Management</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Tracking ID</TableHead>
-              <TableHead>Customer</TableHead>
-              <TableHead>Destination</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Date</TableHead>
-              <TableHead>Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {shipments.map((shipment) => (
-              <TableRow key={shipment.id}>
-                <TableCell>{shipment.id}</TableCell>
-                <TableCell>{shipment.customer}</TableCell>
-                <TableCell>{shipment.destination}</TableCell>
-                <TableCell>{shipment.status}</TableCell>
-                <TableCell>{shipment.date}</TableCell>
-                <TableCell>
-                  <Button variant="outline" size="sm">
-                    Update
-                  </Button>
-                </TableCell>
+    <div className="space-y-4">
+      <h2 className="text-2xl font-bold">Shipment Management</h2>
+      
+      <Card>
+        <CardContent className="p-0">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Tracking ID</TableHead>
+                <TableHead>Customer</TableHead>
+                <TableHead>Destination</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Date</TableHead>
+                <TableHead>Actions</TableHead>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </CardContent>
-    </Card>
+            </TableHeader>
+            <TableBody>
+              {shipments.map((shipment) => (
+                <TableRow key={shipment.id}>
+                  <TableCell className="font-mono">{shipment.id}</TableCell>
+                  <TableCell>{shipment.customer}</TableCell>
+                  <TableCell>{shipment.destination}</TableCell>
+                  <TableCell>
+                    <span className={`px-2 py-1 rounded-full text-xs ${
+                      shipment.status === 'Delivered' ? 'bg-green-100 text-green-800' :
+                      shipment.status === 'In Transit' ? 'bg-blue-100 text-blue-800' :
+                      'bg-yellow-100 text-yellow-800'
+                    }`}>
+                      {shipment.status}
+                    </span>
+                  </TableCell>
+                  <TableCell>{shipment.date}</TableCell>
+                  <TableCell>
+                    <Button 
+                      onClick={() => handleUpdateShipment(shipment.id)}
+                      variant="outline" 
+                      size="sm"
+                    >
+                      Update Status
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
+    </div>
   );
 
   const renderSettings = () => (
     <div className="space-y-6">
+      <h2 className="text-2xl font-bold">Website Settings</h2>
+      
       <Card>
         <CardHeader>
-          <CardTitle>Website Settings</CardTitle>
+          <CardTitle>General Settings</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div>
             <Label htmlFor="site-name">Site Name</Label>
-            <Input id="site-name" defaultValue="ExpressShip" />
+            <Input 
+              id="site-name" 
+              value={siteSettings.siteName}
+              onChange={(e) => handleSettingChange('siteName', e.target.value)}
+            />
           </div>
           <div>
             <Label htmlFor="contact-email">Contact Email</Label>
-            <Input id="contact-email" defaultValue="info@expressship.com" />
+            <Input 
+              id="contact-email" 
+              value={siteSettings.contactEmail}
+              onChange={(e) => handleSettingChange('contactEmail', e.target.value)}
+            />
           </div>
           <div>
             <Label htmlFor="maintenance">Maintenance Mode</Label>
-            <select className="w-full p-2 border rounded">
+            <select 
+              id="maintenance"
+              value={siteSettings.maintenanceMode}
+              onChange={(e) => handleSettingChange('maintenanceMode', e.target.value)}
+              className="w-full p-2 border rounded"
+            >
               <option value="off">Off</option>
               <option value="on">On</option>
             </select>
           </div>
-          <Button>Save Settings</Button>
+          <Button onClick={handleSaveSettings}>Save Settings</Button>
         </CardContent>
       </Card>
     </div>

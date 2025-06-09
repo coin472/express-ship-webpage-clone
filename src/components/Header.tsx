@@ -8,13 +8,32 @@ import { useAuth } from "@/contexts/AuthContext";
 
 export const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const { user, logout } = useAuth();
+  const { user, logout, isLoading } = useAuth();
   const navigate = useNavigate();
 
   const handleLogout = () => {
     logout();
     navigate("/");
   };
+
+  // Show loading state
+  if (isLoading) {
+    return (
+      <header className="bg-card border-b border-border sticky top-0 z-50">
+        <div className="container mx-auto px-4">
+          <div className="flex items-center justify-between h-16">
+            <Link to="/" className="flex items-center space-x-2">
+              <Package className="h-8 w-8 text-yellow-500" />
+              <span className="text-2xl font-bold text-red-600">ExpressShip</span>
+            </Link>
+            <div className="hidden md:flex items-center space-x-4">
+              <div className="w-20 h-8 bg-gray-200 animate-pulse rounded"></div>
+            </div>
+          </div>
+        </div>
+      </header>
+    );
+  }
 
   return (
     <header className="bg-card border-b border-border sticky top-0 z-50">

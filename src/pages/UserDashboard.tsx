@@ -26,12 +26,27 @@ const UserDashboard = () => {
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("overview");
 
+  // Profile form state
+  const [profileData, setProfileData] = useState({
+    name: user?.name || '',
+    email: user?.email || '',
+    phone: '',
+    address: ''
+  });
+
+  // Notification preferences state
+  const [notifications, setNotifications] = useState({
+    email: true,
+    sms: true,
+    marketing: false
+  });
+
   // Redirect if not logged in
   if (!user) {
     return <Navigate to="/" replace />;
   }
 
-  // Mock user data
+  // Mock user data with more realistic content
   const [shipments] = useState([
     {
       id: "ES123456789",
@@ -62,6 +77,37 @@ const UserDashboard = () => {
       title: "Logged Out",
       description: "You have been successfully logged out."
     });
+  };
+
+  const handleCreateShipment = () => {
+    toast({
+      title: "Feature Coming Soon",
+      description: "Shipment creation will be available soon!"
+    });
+  };
+
+  const handleSaveProfile = () => {
+    console.log('Saving profile:', profileData);
+    toast({
+      title: "Profile Updated",
+      description: "Your profile has been successfully updated."
+    });
+  };
+
+  const handleSaveNotifications = () => {
+    console.log('Saving notifications:', notifications);
+    toast({
+      title: "Preferences Saved",
+      description: "Your notification preferences have been updated."
+    });
+  };
+
+  const handleInputChange = (field: string, value: string) => {
+    setProfileData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleNotificationChange = (field: string, value: boolean) => {
+    setNotifications(prev => ({ ...prev, [field]: value }));
   };
 
   const renderOverview = () => (
@@ -108,7 +154,7 @@ const UserDashboard = () => {
         <CardHeader>
           <div className="flex items-center justify-between">
             <CardTitle>Recent Shipments</CardTitle>
-            <Button className="bg-red-600 hover:bg-red-700">
+            <Button onClick={handleCreateShipment} className="bg-red-600 hover:bg-red-700">
               <Plus className="mr-2 h-4 w-4" />
               New Shipment
             </Button>
@@ -153,21 +199,40 @@ const UserDashboard = () => {
       <CardContent className="space-y-4">
         <div>
           <Label htmlFor="name">Full Name</Label>
-          <Input id="name" defaultValue={user.name} />
+          <Input 
+            id="name" 
+            value={profileData.name}
+            onChange={(e) => handleInputChange('name', e.target.value)}
+          />
         </div>
         <div>
           <Label htmlFor="email">Email Address</Label>
-          <Input id="email" defaultValue={user.email} disabled />
+          <Input 
+            id="email" 
+            value={profileData.email}
+            onChange={(e) => handleInputChange('email', e.target.value)}
+            disabled 
+          />
         </div>
         <div>
           <Label htmlFor="phone">Phone Number</Label>
-          <Input id="phone" placeholder="+1 (555) 123-4567" />
+          <Input 
+            id="phone" 
+            placeholder="+1 (555) 123-4567"
+            value={profileData.phone}
+            onChange={(e) => handleInputChange('phone', e.target.value)}
+          />
         </div>
         <div>
           <Label htmlFor="address">Default Address</Label>
-          <Input id="address" placeholder="123 Main St, City, State 12345" />
+          <Input 
+            id="address" 
+            placeholder="123 Main St, City, State 12345"
+            value={profileData.address}
+            onChange={(e) => handleInputChange('address', e.target.value)}
+          />
         </div>
-        <Button>Save Changes</Button>
+        <Button onClick={handleSaveProfile}>Save Changes</Button>
       </CardContent>
     </Card>
   );
@@ -183,23 +248,38 @@ const UserDashboard = () => {
             <p className="font-medium">Email Notifications</p>
             <p className="text-sm text-muted-foreground">Receive updates about your shipments</p>
           </div>
-          <input type="checkbox" defaultChecked className="h-4 w-4" />
+          <input 
+            type="checkbox" 
+            checked={notifications.email}
+            onChange={(e) => handleNotificationChange('email', e.target.checked)}
+            className="h-4 w-4" 
+          />
         </div>
         <div className="flex items-center justify-between">
           <div>
             <p className="font-medium">SMS Notifications</p>
             <p className="text-sm text-muted-foreground">Get text updates for delivery status</p>
           </div>
-          <input type="checkbox" defaultChecked className="h-4 w-4" />
+          <input 
+            type="checkbox" 
+            checked={notifications.sms}
+            onChange={(e) => handleNotificationChange('sms', e.target.checked)}
+            className="h-4 w-4" 
+          />
         </div>
         <div className="flex items-center justify-between">
           <div>
             <p className="font-medium">Marketing Updates</p>
             <p className="text-sm text-muted-foreground">Receive promotional offers and news</p>
           </div>
-          <input type="checkbox" className="h-4 w-4" />
+          <input 
+            type="checkbox" 
+            checked={notifications.marketing}
+            onChange={(e) => handleNotificationChange('marketing', e.target.checked)}
+            className="h-4 w-4" 
+          />
         </div>
-        <Button>Save Preferences</Button>
+        <Button onClick={handleSaveNotifications}>Save Preferences</Button>
       </CardContent>
     </Card>
   );
