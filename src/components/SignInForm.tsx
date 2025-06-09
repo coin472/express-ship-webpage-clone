@@ -1,15 +1,20 @@
 
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { useAuth } from "@/contexts/AuthContext";
+import { useToast } from "@/hooks/use-toast";
 import { User, Lock, Eye, EyeOff } from "lucide-react";
 
 export const SignInForm = ({ trigger }: { trigger: React.ReactNode }) => {
   const [showPassword, setShowPassword] = useState(false);
   const [isSignUp, setIsSignUp] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [open, setOpen] = useState(false);
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -19,18 +24,78 @@ export const SignInForm = ({ trigger }: { trigger: React.ReactNode }) => {
     rememberMe: false
   });
 
+  const { login, register } = useAuth();
+  const { toast } = useToast();
+  const navigate = useNavigate();
+
   const handleInputChange = (field: string, value: string | boolean) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Form submitted:", formData);
-    // Handle sign in/up logic here
+    setIsLoading(true);
+
+    try {
+      if (isSignUp) {
+        if (formData.password !== formData.confirmPassword) {
+          toast({
+            title: "Error",
+            description: "Passwords do not match",
+            variant: "destructive"
+          });
+          setIsLoading(false);
+          return;
+        }
+
+        const fullName = `${formData.firstName} ${formData.lastName}`.trim();
+        const success = await register(formData.email, formData.password, fullName);
+        
+        if (success) {
+          toast({
+            title: "Account Created",
+            description: "Welcome to ExpressShip!"
+          });
+          setOpen(false);
+          navigate("/dashboard");
+        } else {
+          toast({
+            title: "Registration Failed",
+            description: "Please check your information and try again.",
+            variant: "destructive"
+          });
+        }
+      } else {
+        const success = await login(formData.email, formData.password);
+        
+        if (success) {
+          toast({
+            title: "Welcome Back",
+            description: "You have been successfully signed in."
+          });
+          setOpen(false);
+          navigate("/dashboard");
+        } else {
+          toast({
+            title: "Sign In Failed",
+            description: "Invalid email or password.",
+            variant: "destructive"
+          });
+        }
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred.",
+        variant: "destructive"
+      });
+    }
+
+    setIsLoading(false);
   };
 
   return (
-    <Dialog>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         {trigger}
       </DialogTrigger>
@@ -53,6 +118,7 @@ export const SignInForm = ({ trigger }: { trigger: React.ReactNode }) => {
                       placeholder="John"
                       value={formData.firstName}
                       onChange={(e) => handleInputChange("firstName", e.target.value)}
+                      required
                     />
                   </div>
                   <div>
@@ -61,6 +127,7 @@ export const SignInForm = ({ trigger }: { trigger: React.ReactNode }) => {
                       placeholder="Doe"
                       value={formData.lastName}
                       onChange={(e) => handleInputChange("lastName", e.target.value)}
+                      required
                     />
                   </div>
                 </div>
@@ -121,8 +188,12 @@ export const SignInForm = ({ trigger }: { trigger: React.ReactNode }) => {
                 </label>
               </div>
 
-              <Button type="submit" className="w-full bg-red-600 hover:bg-red-700">
-                {isSignUp ? "Create Account" : "Sign In"}
+              <Button 
+                type="submit" 
+                className="w-full bg-red-600 hover:bg-red-700"
+                disabled={isLoading}
+              >
+                {isLoading ? "Processing..." : (isSignUp ? "Create Account" : "Sign In")}
               </Button>
 
               {!isSignUp && (

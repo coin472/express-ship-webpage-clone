@@ -1,12 +1,20 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Package, Menu, X } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Package, Menu, X, User } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
 import { SignInForm } from "./SignInForm";
+import { useAuth } from "@/contexts/AuthContext";
 
 export const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    logout();
+    navigate("/");
+  };
 
   return (
     <header className="bg-card border-b border-border sticky top-0 z-50">
@@ -36,9 +44,36 @@ export const Header = () => {
 
           {/* Desktop Actions */}
           <div className="hidden md:flex items-center space-x-4">
-            <SignInForm 
-              trigger={<Button variant="outline">Sign In</Button>}
-            />
+            {user ? (
+              <div className="flex items-center space-x-4">
+                {user.role === 'admin' ? (
+                  <Link to="/admin-panel">
+                    <Button variant="outline">Admin Panel</Button>
+                  </Link>
+                ) : (
+                  <Link to="/dashboard">
+                    <Button variant="outline" className="flex items-center">
+                      <User className="mr-2 h-4 w-4" />
+                      Dashboard
+                    </Button>
+                  </Link>
+                )}
+                <Button variant="outline" onClick={handleLogout}>
+                  Sign Out
+                </Button>
+              </div>
+            ) : (
+              <>
+                <SignInForm 
+                  trigger={<Button variant="outline">Sign In</Button>}
+                />
+                <Link to="/admin-login">
+                  <Button variant="ghost" size="sm" className="text-xs">
+                    Admin
+                  </Button>
+                </Link>
+              </>
+            )}
             <Button className="bg-red-600 hover:bg-red-700 text-white">
               Ship Now
             </Button>
@@ -70,9 +105,33 @@ export const Header = () => {
                 Contact
               </Link>
               <div className="flex flex-col space-y-2 pt-4">
-                <SignInForm 
-                  trigger={<Button variant="outline" className="w-full">Sign In</Button>}
-                />
+                {user ? (
+                  <>
+                    {user.role === 'admin' ? (
+                      <Link to="/admin-panel">
+                        <Button variant="outline" className="w-full">Admin Panel</Button>
+                      </Link>
+                    ) : (
+                      <Link to="/dashboard">
+                        <Button variant="outline" className="w-full">Dashboard</Button>
+                      </Link>
+                    )}
+                    <Button variant="outline" onClick={handleLogout} className="w-full">
+                      Sign Out
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <SignInForm 
+                      trigger={<Button variant="outline" className="w-full">Sign In</Button>}
+                    />
+                    <Link to="/admin-login">
+                      <Button variant="ghost" className="w-full">
+                        Admin Login
+                      </Button>
+                    </Link>
+                  </>
+                )}
                 <Button className="w-full bg-red-600 hover:bg-red-700 text-white">
                   Ship Now
                 </Button>
