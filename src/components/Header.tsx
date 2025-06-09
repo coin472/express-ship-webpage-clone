@@ -3,6 +3,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Package, Menu, X } from "lucide-react";
 import { Link } from "react-router-dom";
+import { SignInForm } from "./SignInForm";
 
 export const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -35,7 +36,9 @@ export const Header = () => {
 
           {/* Desktop Actions */}
           <div className="hidden md:flex items-center space-x-4">
-            <Button variant="outline">Sign In</Button>
+            <SignInForm 
+              trigger={<Button variant="outline">Sign In</Button>}
+            />
             <Button className="bg-red-600 hover:bg-red-700 text-white">
               Ship Now
             </Button>
@@ -67,7 +70,9 @@ export const Header = () => {
                 Contact
               </Link>
               <div className="flex flex-col space-y-2 pt-4">
-                <Button variant="outline" className="w-full">Sign In</Button>
+                <SignInForm 
+                  trigger={<Button variant="outline" className="w-full">Sign In</Button>}
+                />
                 <Button className="w-full bg-red-600 hover:bg-red-700 text-white">
                   Ship Now
                 </Button>
