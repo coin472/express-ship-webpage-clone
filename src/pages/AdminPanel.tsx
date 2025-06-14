@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
@@ -7,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { ShipmentForm } from "@/components/ShipmentForm";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { 
@@ -29,6 +29,7 @@ const AdminPanel = () => {
   const { user, isAdmin } = useAuth();
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("dashboard");
+  const [isShipmentFormOpen, setIsShipmentFormOpen] = useState(false);
 
   // Redirect if not admin
   if (!isAdmin) {
@@ -55,7 +56,7 @@ const AdminPanel = () => {
   });
 
   // Stats
-  const [stats] = useState({
+  const [stats, setStats] = useState({
     totalUsers: 1234,
     activeShipments: 567,
     revenue: 45200,
@@ -71,10 +72,34 @@ const AdminPanel = () => {
   };
 
   const handleCreateShipment = () => {
-    console.log('Creating new shipment');
+    console.log('Opening shipment creation form');
+    setIsShipmentFormOpen(true);
+  };
+
+  const handleShipmentSubmit = (shipmentData: any) => {
+    console.log('New shipment created by admin:', shipmentData);
+    
+    // Add the new shipment to the shipments list
+    const newShipment = {
+      id: shipmentData.trackingId,
+      customer: shipmentData.senderName,
+      destination: `${shipmentData.recipientCity}, ${shipmentData.recipientState}`,
+      status: "Processing",
+      date: new Date().toISOString().split('T')[0]
+    };
+    
+    setShipments(prev => [newShipment, ...prev]);
+    
+    // Update stats
+    setStats(prev => ({
+      ...prev,
+      activeShipments: prev.activeShipments + 1,
+      revenue: prev.revenue + shipmentData.cost
+    }));
+
     toast({
-      title: "Feature Available",
-      description: "Redirecting to shipment creation form..."
+      title: "Shipment Created Successfully!",
+      description: `Admin created shipment ${shipmentData.trackingId} - Cost: $${shipmentData.cost.toFixed(2)}`
     });
   };
 
@@ -425,53 +450,61 @@ const AdminPanel = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-background">
-      <Header />
-      
-      <main className="container mx-auto px-4 py-8">
-        <div className="mb-8">
-          <div className="flex items-center mb-4">
-            <Shield className="mr-2 h-6 w-6 text-red-600" />
-            <h1 className="text-3xl font-bold">Admin Control Panel</h1>
-          </div>
-          <p className="text-muted-foreground">Welcome back, {user?.name}</p>
-        </div>
-
-        <div className="flex flex-col lg:flex-row gap-6">
-          <div className="lg:w-64">
-            <Card>
-              <CardContent className="p-4">
-                <nav className="space-y-2">
-                  {tabs.map((tab) => (
-                    <button
-                      key={tab.id}
-                      onClick={() => setActiveTab(tab.id)}
-                      className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-left transition-colors ${
-                        activeTab === tab.id
-                          ? "bg-red-600 text-white"
-                          : "hover:bg-gray-100 text-gray-700"
-                      }`}
-                    >
-                      <tab.icon className="h-4 w-4" />
-                      <span>{tab.label}</span>
-                    </button>
-                  ))}
-                </nav>
-              </CardContent>
-            </Card>
+    <>
+      <div className="min-h-screen bg-background">
+        <Header />
+        
+        <main className="container mx-auto px-4 py-8">
+          <div className="mb-8">
+            <div className="flex items-center mb-4">
+              <Shield className="mr-2 h-6 w-6 text-red-600" />
+              <h1 className="text-3xl font-bold">Admin Control Panel</h1>
+            </div>
+            <p className="text-muted-foreground">Welcome back, {user?.name}</p>
           </div>
 
-          <div className="flex-1">
-            {activeTab === "dashboard" && renderDashboard()}
-            {activeTab === "users" && renderUserManagement()}
-            {activeTab === "shipments" && renderShipmentManagement()}
-            {activeTab === "settings" && renderSettings()}
-          </div>
-        </div>
-      </main>
+          <div className="flex flex-col lg:flex-row gap-6">
+            <div className="lg:w-64">
+              <Card>
+                <CardContent className="p-4">
+                  <nav className="space-y-2">
+                    {tabs.map((tab) => (
+                      <button
+                        key={tab.id}
+                        onClick={() => setActiveTab(tab.id)}
+                        className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-left transition-colors ${
+                          activeTab === tab.id
+                            ? "bg-red-600 text-white"
+                            : "hover:bg-gray-100 text-gray-700"
+                        }`}
+                      >
+                        <tab.icon className="h-4 w-4" />
+                        <span>{tab.label}</span>
+                      </button>
+                    ))}
+                  </nav>
+                </CardContent>
+              </Card>
+            </div>
 
-      <Footer />
-    </div>
+            <div className="flex-1">
+              {activeTab === "dashboard" && renderDashboard()}
+              {activeTab === "users" && renderUserManagement()}
+              {activeTab === "shipments" && renderShipmentManagement()}
+              {activeTab === "settings" && renderSettings()}
+            </div>
+          </div>
+        </main>
+
+        <Footer />
+      </div>
+
+      <ShipmentForm
+        isOpen={isShipmentFormOpen}
+        onClose={() => setIsShipmentFormOpen(false)}
+        onSubmit={handleShipmentSubmit}
+      />
+    </>
   );
 };
 
