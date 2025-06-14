@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Package, Menu, X, User } from "lucide-react";
@@ -20,6 +21,14 @@ export const Header = () => {
   };
 
   const handleShipNow = () => {
+    if (!user) {
+      toast({
+        title: "Sign In Required",
+        description: "Please sign in to create a shipment",
+        variant: "destructive"
+      });
+      return;
+    }
     setIsShipmentFormOpen(true);
   };
 
