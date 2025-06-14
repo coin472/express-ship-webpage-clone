@@ -1,6 +1,7 @@
 
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Truck } from "lucide-react";
+import { QuoteForm } from "./QuoteForm";
 
 export const Hero = () => {
   return (
@@ -19,10 +20,14 @@ export const Hero = () => {
             </div>
             
             <div className="flex flex-col sm:flex-row gap-4">
-              <Button size="lg" className="bg-red-600 hover:bg-red-700 text-white">
-                Get Quote
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </Button>
+              <QuoteForm 
+                trigger={
+                  <Button size="lg" className="bg-red-600 hover:bg-red-700 text-white">
+                    Get Quote
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                  </Button>
+                }
+              />
               <Button size="lg" variant="outline">
                 Track Package
               </Button>

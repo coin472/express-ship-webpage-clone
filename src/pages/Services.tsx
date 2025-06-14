@@ -4,6 +4,7 @@ import { Footer } from "@/components/Footer";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Package, Truck, Box, MapPin, ArrowRight } from "lucide-react";
+import { QuoteForm } from "@/components/QuoteForm";
 
 const Services = () => {
   const services = [
@@ -83,10 +84,14 @@ const Services = () => {
                   
                   <div className="flex items-center justify-between pt-6 border-t">
                     <div className="text-2xl font-bold text-red-600">{service.price}</div>
-                    <Button className="bg-red-600 hover:bg-red-700 text-white">
-                      Get Quote
-                      <ArrowRight className="ml-2 h-4 w-4" />
-                    </Button>
+                    <QuoteForm 
+                      trigger={
+                        <Button className="bg-red-600 hover:bg-red-700 text-white">
+                          Get Quote
+                          <ArrowRight className="ml-2 h-4 w-4" />
+                        </Button>
+                      }
+                    />
                   </div>
                 </CardContent>
               </Card>
