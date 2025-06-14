@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
@@ -6,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { ShipmentForm } from "@/components/ShipmentForm";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { 
@@ -21,10 +21,26 @@ import {
 } from "lucide-react";
 import { Navigate } from "react-router-dom";
 
+interface Shipment {
+  id: string;
+  destination: string;
+  status: string;
+  estimatedDelivery: string;
+  trackingUpdates: Array<{
+    status: string;
+    time: string;
+    location: string;
+  }>;
+  cost?: number;
+  senderName?: string;
+  recipientName?: string;
+}
+
 const UserDashboard = () => {
   const { user, logout } = useAuth();
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("overview");
+  const [isShipmentFormOpen, setIsShipmentFormOpen] = useState(false);
 
   // Profile form state
   const [profileData, setProfileData] = useState({
@@ -41,18 +57,14 @@ const UserDashboard = () => {
     marketing: false
   });
 
-  // Redirect if not logged in
-  if (!user) {
-    return <Navigate to="/" replace />;
-  }
-
-  // Mock user data with more realistic content
-  const [shipments] = useState([
+  // Shipments state with ability to add new ones
+  const [shipments, setShipments] = useState<Shipment[]>([
     {
       id: "ES123456789",
       destination: "New York, NY",
       status: "In Transit",
       estimatedDelivery: "Tomorrow, 3:00 PM",
+      cost: 45.50,
       trackingUpdates: [
         { status: "Package received", time: "2 days ago", location: "Los Angeles, CA" },
         { status: "In transit", time: "1 day ago", location: "Phoenix, AZ" },
@@ -64,12 +76,25 @@ const UserDashboard = () => {
       destination: "Chicago, IL",
       status: "Delivered",
       estimatedDelivery: "Delivered yesterday",
+      cost: 32.75,
       trackingUpdates: [
         { status: "Package received", time: "3 days ago", location: "Los Angeles, CA" },
         { status: "Delivered", time: "Yesterday, 2:30 PM", location: "Chicago, IL" }
       ]
     }
   ]);
+
+  // Statistics calculation
+  const stats = {
+    activeShipments: shipments.filter(s => s.status !== "Delivered").length,
+    totalDeliveries: shipments.filter(s => s.status === "Delivered").length,
+    monthlySpending: shipments.reduce((sum, shipment) => sum + (shipment.cost || 0), 0)
+  };
+
+  // Redirect if not logged in
+  if (!user) {
+    return <Navigate to="/" replace />;
+  }
 
   const handleLogout = () => {
     logout();
@@ -80,9 +105,60 @@ const UserDashboard = () => {
   };
 
   const handleCreateShipment = () => {
+    setIsShipmentFormOpen(true);
+  };
+
+  const handleShipmentSubmit = (shipmentData: any) => {
+    console.log('Creating new shipment:', shipmentData);
+    
+    const newShipment: Shipment = {
+      id: shipmentData.trackingId,
+      destination: `${shipmentData.recipientCity}, ${shipmentData.recipientState}`,
+      status: "Processing",
+      estimatedDelivery: calculateEstimatedDelivery(shipmentData.serviceType),
+      cost: shipmentData.cost,
+      senderName: shipmentData.senderName,
+      recipientName: shipmentData.recipientName,
+      trackingUpdates: [
+        { 
+          status: "Package received", 
+          time: "Just now", 
+          location: `${shipmentData.senderCity}, ${shipmentData.senderState}` 
+        }
+      ]
+    };
+
+    setShipments(prev => [newShipment, ...prev]);
+    
     toast({
-      title: "Feature Coming Soon",
-      description: "Shipment creation will be available soon!"
+      title: "Shipment Created Successfully!",
+      description: `Tracking ID: ${shipmentData.trackingId} - Estimated cost: $${shipmentData.cost.toFixed(2)}`
+    });
+  };
+
+  const calculateEstimatedDelivery = (serviceType: string) => {
+    const today = new Date();
+    let deliveryDays = 0;
+    
+    switch (serviceType) {
+      case "express":
+        deliveryDays = 2;
+        break;
+      case "standard":
+        deliveryDays = 4;
+        break;
+      case "economy":
+        deliveryDays = 8;
+        break;
+    }
+    
+    const deliveryDate = new Date(today);
+    deliveryDate.setDate(today.getDate() + deliveryDays);
+    
+    return deliveryDate.toLocaleDateString('en-US', { 
+      weekday: 'long', 
+      month: 'short', 
+      day: 'numeric' 
     });
   };
 
@@ -118,7 +194,7 @@ const UserDashboard = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Active Shipments</p>
-                <p className="text-2xl font-bold">2</p>
+                <p className="text-2xl font-bold">{stats.activeShipments}</p>
               </div>
               <Package className="h-8 w-8 text-blue-600" />
             </div>
@@ -130,7 +206,7 @@ const UserDashboard = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Total Deliveries</p>
-                <p className="text-2xl font-bold">12</p>
+                <p className="text-2xl font-bold">{stats.totalDeliveries}</p>
               </div>
               <Clock className="h-8 w-8 text-green-600" />
             </div>
@@ -141,8 +217,8 @@ const UserDashboard = () => {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-muted-foreground">This Month</p>
-                <p className="text-2xl font-bold">$245</p>
+                <p className="text-sm font-medium text-muted-foreground">Total Spent</p>
+                <p className="text-2xl font-bold">${stats.monthlySpending.toFixed(2)}</p>
               </div>
               <CreditCard className="h-8 w-8 text-yellow-600" />
             </div>
@@ -172,12 +248,18 @@ const UserDashboard = () => {
                       <MapPin className="h-3 w-3 mr-1" />
                       {shipment.destination}
                     </p>
+                    {shipment.cost && (
+                      <p className="text-sm text-muted-foreground">
+                        Cost: ${shipment.cost.toFixed(2)}
+                      </p>
+                    )}
                   </div>
                 </div>
                 <div className="text-right">
                   <p className={`font-semibold ${
                     shipment.status === 'Delivered' ? 'text-green-600' : 
-                    shipment.status === 'In Transit' ? 'text-blue-600' : 'text-yellow-600'
+                    shipment.status === 'In Transit' ? 'text-blue-600' : 
+                    shipment.status === 'Processing' ? 'text-orange-600' : 'text-yellow-600'
                   }`}>
                     {shipment.status}
                   </p>
@@ -339,6 +421,12 @@ const UserDashboard = () => {
           </div>
         </div>
       </main>
+
+      <ShipmentForm
+        isOpen={isShipmentFormOpen}
+        onClose={() => setIsShipmentFormOpen(false)}
+        onSubmit={handleShipmentSubmit}
+      />
 
       <Footer />
     </div>
