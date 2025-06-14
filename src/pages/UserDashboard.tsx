@@ -1,25 +1,18 @@
+
 import { useState } from "react";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { ShipmentForm } from "@/components/ShipmentForm";
 import { ShipmentDetails } from "@/components/ShipmentDetails";
+import { DashboardStats } from "@/components/DashboardStats";
+import { ShipmentsList } from "@/components/ShipmentsList";
+import { ProfileSettings } from "@/components/ProfileSettings";
+import { NotificationSettings } from "@/components/NotificationSettings";
+import { DashboardNavigation } from "@/components/DashboardNavigation";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
-import { 
-  User, 
-  Package, 
-  Clock, 
-  MapPin, 
-  Bell,
-  CreditCard,
-  Settings,
-  LogOut,
-  Plus
-} from "lucide-react";
+import { LogOut } from "lucide-react";
 import { Navigate } from "react-router-dom";
 
 interface Shipment {
@@ -196,193 +189,14 @@ const UserDashboard = () => {
 
   const renderOverview = () => (
     <div className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Active Shipments</p>
-                <p className="text-2xl font-bold">{stats.activeShipments}</p>
-              </div>
-              <Package className="h-8 w-8 text-blue-600" />
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Total Deliveries</p>
-                <p className="text-2xl font-bold">{stats.totalDeliveries}</p>
-              </div>
-              <Clock className="h-8 w-8 text-green-600" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Total Spent</p>
-                <p className="text-2xl font-bold">${stats.monthlySpending.toFixed(2)}</p>
-              </div>
-              <CreditCard className="h-8 w-8 text-yellow-600" />
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle>Recent Shipments</CardTitle>
-            <Button onClick={handleCreateShipment} className="bg-red-600 hover:bg-red-700">
-              <Plus className="mr-2 h-4 w-4" />
-              New Shipment
-            </Button>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {shipments.map((shipment) => (
-              <div 
-                key={shipment.id} 
-                className="flex items-center justify-between p-4 border rounded-lg cursor-pointer hover:bg-gray-50 transition-colors"
-                onClick={() => handleShipmentClick(shipment)}
-              >
-                <div className="flex items-center space-x-4">
-                  <Package className="h-8 w-8 text-blue-600" />
-                  <div>
-                    <p className="font-semibold">{shipment.id}</p>
-                    <p className="text-sm text-muted-foreground flex items-center">
-                      <MapPin className="h-3 w-3 mr-1" />
-                      {shipment.destination}
-                    </p>
-                    {shipment.cost && (
-                      <p className="text-sm text-muted-foreground">
-                        Cost: ${shipment.cost.toFixed(2)}
-                      </p>
-                    )}
-                  </div>
-                </div>
-                <div className="text-right">
-                  <p className={`font-semibold ${
-                    shipment.status === 'Delivered' ? 'text-green-600' : 
-                    shipment.status === 'In Transit' ? 'text-blue-600' : 
-                    shipment.status === 'Processing' ? 'text-orange-600' : 'text-yellow-600'
-                  }`}>
-                    {shipment.status}
-                  </p>
-                  <p className="text-sm text-muted-foreground">{shipment.estimatedDelivery}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+      <DashboardStats {...stats} />
+      <ShipmentsList 
+        shipments={shipments}
+        onCreateShipment={handleCreateShipment}
+        onShipmentClick={handleShipmentClick}
+      />
     </div>
   );
-
-  const renderProfile = () => (
-    <Card>
-      <CardHeader>
-        <CardTitle>Profile Settings</CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <div>
-          <Label htmlFor="name">Full Name</Label>
-          <Input 
-            id="name" 
-            value={profileData.name}
-            onChange={(e) => handleInputChange('name', e.target.value)}
-          />
-        </div>
-        <div>
-          <Label htmlFor="email">Email Address</Label>
-          <Input 
-            id="email" 
-            value={profileData.email}
-            onChange={(e) => handleInputChange('email', e.target.value)}
-            disabled 
-          />
-        </div>
-        <div>
-          <Label htmlFor="phone">Phone Number</Label>
-          <Input 
-            id="phone" 
-            placeholder="+1 (555) 123-4567"
-            value={profileData.phone}
-            onChange={(e) => handleInputChange('phone', e.target.value)}
-          />
-        </div>
-        <div>
-          <Label htmlFor="address">Default Address</Label>
-          <Input 
-            id="address" 
-            placeholder="123 Main St, City, State 12345"
-            value={profileData.address}
-            onChange={(e) => handleInputChange('address', e.target.value)}
-          />
-        </div>
-        <Button onClick={handleSaveProfile}>Save Changes</Button>
-      </CardContent>
-    </Card>
-  );
-
-  const renderNotifications = () => (
-    <Card>
-      <CardHeader>
-        <CardTitle>Notification Preferences</CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="font-medium">Email Notifications</p>
-            <p className="text-sm text-muted-foreground">Receive updates about your shipments</p>
-          </div>
-          <input 
-            type="checkbox" 
-            checked={notifications.email}
-            onChange={(e) => handleNotificationChange('email', e.target.checked)}
-            className="h-4 w-4" 
-          />
-        </div>
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="font-medium">SMS Notifications</p>
-            <p className="text-sm text-muted-foreground">Get text updates for delivery status</p>
-          </div>
-          <input 
-            type="checkbox" 
-            checked={notifications.sms}
-            onChange={(e) => handleNotificationChange('sms', e.target.checked)}
-            className="h-4 w-4" 
-          />
-        </div>
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="font-medium">Marketing Updates</p>
-            <p className="text-sm text-muted-foreground">Receive promotional offers and news</p>
-          </div>
-          <input 
-            type="checkbox" 
-            checked={notifications.marketing}
-            onChange={(e) => handleNotificationChange('marketing', e.target.checked)}
-            className="h-4 w-4" 
-          />
-        </div>
-        <Button onClick={handleSaveNotifications}>Save Preferences</Button>
-      </CardContent>
-    </Card>
-  );
-
-  const tabs = [
-    { id: "overview", label: "Overview", icon: User },
-    { id: "profile", label: "Profile", icon: Settings },
-    { id: "notifications", label: "Notifications", icon: Bell },
-  ];
 
   return (
     <div className="min-h-screen bg-background">
@@ -404,32 +218,28 @@ const UserDashboard = () => {
 
         <div className="flex flex-col lg:flex-row gap-6">
           <div className="lg:w-64">
-            <Card>
-              <CardContent className="p-4">
-                <nav className="space-y-2">
-                  {tabs.map((tab) => (
-                    <button
-                      key={tab.id}
-                      onClick={() => setActiveTab(tab.id)}
-                      className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-left transition-colors ${
-                        activeTab === tab.id
-                          ? "bg-red-600 text-white"
-                          : "hover:bg-gray-100 text-gray-700"
-                      }`}
-                    >
-                      <tab.icon className="h-4 w-4" />
-                      <span>{tab.label}</span>
-                    </button>
-                  ))}
-                </nav>
-              </CardContent>
-            </Card>
+            <DashboardNavigation 
+              activeTab={activeTab}
+              onTabChange={setActiveTab}
+            />
           </div>
 
           <div className="flex-1">
             {activeTab === "overview" && renderOverview()}
-            {activeTab === "profile" && renderProfile()}
-            {activeTab === "notifications" && renderNotifications()}
+            {activeTab === "profile" && (
+              <ProfileSettings
+                profileData={profileData}
+                onInputChange={handleInputChange}
+                onSave={handleSaveProfile}
+              />
+            )}
+            {activeTab === "notifications" && (
+              <NotificationSettings
+                notifications={notifications}
+                onNotificationChange={handleNotificationChange}
+                onSave={handleSaveNotifications}
+              />
+            )}
           </div>
         </div>
       </main>
