@@ -1,5 +1,6 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { useToast } from "@/hooks/use-toast";
@@ -18,11 +19,20 @@ interface TrackingStep {
 }
 
 const Tracking = () => {
+  const [searchParams] = useSearchParams();
   const [isTracking, setIsTracking] = useState(false);
   const [showResults, setShowResults] = useState(false);
   const [trackingData, setTrackingData] = useState<TrackingStep[]>([]);
   const [currentTrackingNumber, setCurrentTrackingNumber] = useState("");
   const { toast } = useToast();
+
+  // Check for tracking number in URL parameters
+  useEffect(() => {
+    const trackingNumber = searchParams.get('number');
+    if (trackingNumber) {
+      handleTrack(trackingNumber);
+    }
+  }, [searchParams]);
 
   const handleTrack = async (trackingNumber: string) => {
     setIsTracking(true);

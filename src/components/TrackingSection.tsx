@@ -1,19 +1,29 @@
 
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Package, MapPin, Truck, Box } from "lucide-react";
+import { TrackingInput } from "./ui/tracking-input";
+import { useToast } from "@/hooks/use-toast";
+import { useNavigate } from "react-router-dom";
 
 export const TrackingSection = () => {
-  const [trackingNumber, setTrackingNumber] = useState("");
   const [isTracking, setIsTracking] = useState(false);
+  const { toast } = useToast();
+  const navigate = useNavigate();
 
-  const handleTrack = () => {
-    if (trackingNumber.trim()) {
-      setIsTracking(true);
-      // Simulate API call
-      setTimeout(() => setIsTracking(false), 1000);
-    }
+  const handleTrack = (trackingNumber: string) => {
+    setIsTracking(true);
+    
+    // Simulate API call delay
+    setTimeout(() => {
+      setIsTracking(false);
+      // Navigate to tracking page with the tracking number
+      navigate(`/tracking?number=${encodeURIComponent(trackingNumber)}`);
+      toast({
+        title: "Redirecting",
+        description: "Taking you to the tracking page..."
+      });
+    }, 1000);
   };
 
   return (
@@ -35,22 +45,13 @@ export const TrackingSection = () => {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="flex flex-col sm:flex-row gap-4">
-                <input
-                  type="text"
-                  placeholder="Enter tracking number (e.g., ES123456789)"
-                  value={trackingNumber}
-                  onChange={(e) => setTrackingNumber(e.target.value)}
-                  className="flex-1 px-4 py-3 border border-border rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                />
-                <Button 
-                  onClick={handleTrack}
-                  disabled={isTracking}
-                  className="bg-red-600 hover:bg-red-700 text-white px-8"
-                >
-                  {isTracking ? "Tracking..." : "Track"}
-                </Button>
-              </div>
+              <TrackingInput
+                onTrack={handleTrack}
+                isTracking={isTracking}
+                placeholder="Enter tracking number (e.g., ES123456789)"
+                buttonText="Track"
+                showValidation={false}
+              />
             </CardContent>
           </Card>
 

@@ -1,9 +1,36 @@
 
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Truck } from "lucide-react";
 import { QuoteForm } from "./QuoteForm";
+import { TrackingInput } from "./ui/tracking-input";
+import { useToast } from "@/hooks/use-toast";
+import { useNavigate } from "react-router-dom";
 
 export const Hero = () => {
+  const [isTracking, setIsTracking] = useState(false);
+  const { toast } = useToast();
+  const navigate = useNavigate();
+
+  const handleTrack = (trackingNumber: string) => {
+    setIsTracking(true);
+    
+    // Simulate API call delay
+    setTimeout(() => {
+      setIsTracking(false);
+      // Navigate to tracking page with the tracking number
+      navigate(`/tracking?number=${encodeURIComponent(trackingNumber)}`);
+      toast({
+        title: "Redirecting",
+        description: "Taking you to the tracking page..."
+      });
+    }, 1000);
+  };
+
+  const handleTrackButtonClick = () => {
+    navigate('/tracking');
+  };
+
   return (
     <section className="bg-gradient-to-br from-red-50 to-yellow-50 py-20">
       <div className="container mx-auto px-4">
@@ -28,7 +55,7 @@ export const Hero = () => {
                   </Button>
                 }
               />
-              <Button size="lg" variant="outline">
+              <Button size="lg" variant="outline" onClick={handleTrackButtonClick}>
                 Track Package
               </Button>
             </div>
@@ -59,16 +86,14 @@ export const Hero = () => {
                 </div>
               </div>
               
-              <div className="space-y-4">
-                <input
-                  type="text"
-                  placeholder="Enter tracking number"
-                  className="w-full px-4 py-3 border border-border rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                />
-                <Button className="w-full bg-yellow-500 hover:bg-yellow-600 text-black font-semibold">
-                  Track Now
-                </Button>
-              </div>
+              <TrackingInput
+                onTrack={handleTrack}
+                isTracking={isTracking}
+                placeholder="Enter tracking number"
+                buttonText="Track Now"
+                showValidation={false}
+                className="space-y-4"
+              />
             </div>
             
             {/* Background decoration */}
