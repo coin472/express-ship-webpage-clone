@@ -13,10 +13,12 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { Shield } from "lucide-react";
 import { Navigate } from "react-router-dom";
+import { useSiteSettings } from "@/contexts/SiteSettingsContext";
 
 const AdminPanel = () => {
   const { user, isAdmin } = useAuth();
   const { toast } = useToast();
+  const { siteSettings, updateSiteSettings, saveSiteSettings } = useSiteSettings();
   const [activeTab, setActiveTab] = useState("dashboard");
   const [isShipmentFormOpen, setIsShipmentFormOpen] = useState(false);
   const [isNotificationDialogOpen, setIsNotificationDialogOpen] = useState(false);
@@ -39,13 +41,6 @@ const AdminPanel = () => {
     { id: "ES456789123", customer: "Bob Wilson", destination: "Chicago", status: "Processing", date: "2024-01-16" },
   ]);
 
-  const [siteSettings, setSiteSettings] = useState({
-    siteName: "ExpressShip",
-    contactEmail: "info@expressship.com",
-    maintenanceMode: "off"
-  });
-
-  // Stats
   const [stats, setStats] = useState({
     totalUsers: 1234,
     activeShipments: 567,
@@ -201,15 +196,11 @@ const AdminPanel = () => {
   };
 
   const handleSaveSettings = () => {
-    console.log('Saving settings:', siteSettings);
-    toast({
-      title: "Settings Saved",
-      description: "Website settings have been updated successfully."
-    });
+    saveSiteSettings();
   };
 
-  const handleSettingChange = (field: string, value: string) => {
-    setSiteSettings(prev => ({ ...prev, [field]: value }));
+  const handleSettingChange = (field: string, value: string | boolean) => {
+    updateSiteSettings({ [field]: value });
   };
 
   const handleRestrictUser = (userId: number) => {
