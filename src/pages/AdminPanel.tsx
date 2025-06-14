@@ -143,12 +143,14 @@ const AdminPanel = () => {
     });
   };
 
-  const handleEditUser = (userId: number) => {
-    console.log('Editing user:', userId);
-    const user = users.find(u => u.id === userId);
+  const handleEditUser = (userId: number, updates: Partial<{ name: string; email: string; role: string; status: string }>) => {
+    console.log('Updating user:', userId, updates);
+    setUsers(users.map(user => 
+      user.id === userId ? { ...user, ...updates } : user
+    ));
     toast({
-      title: "Edit User",
-      description: `Editing user: ${user?.name}`
+      title: "User Updated",
+      description: `User information has been updated successfully.`
     });
   };
 
@@ -210,6 +212,29 @@ const AdminPanel = () => {
     setSiteSettings(prev => ({ ...prev, [field]: value }));
   };
 
+  const handleRestrictUser = (userId: number) => {
+    console.log('Restricting user:', userId);
+    setUsers(users.map(user => 
+      user.id === userId ? { ...user, status: 'restricted' } : user
+    ));
+    toast({
+      title: "User Restricted",
+      description: "User access has been restricted.",
+      variant: "destructive"
+    });
+  };
+
+  const handleUnrestrictUser = (userId: number) => {
+    console.log('Unrestricting user:', userId);
+    setUsers(users.map(user => 
+      user.id === userId ? { ...user, status: 'active' } : user
+    ));
+    toast({
+      title: "User Unrestricted",
+      description: "User access has been restored."
+    });
+  };
+
   return (
     <>
       <div className="min-h-screen bg-background">
@@ -245,6 +270,8 @@ const AdminPanel = () => {
                   onEditUser={handleEditUser}
                   onDeleteUser={handleDeleteUser}
                   onAddUser={handleAddUser}
+                  onRestrictUser={handleRestrictUser}
+                  onUnrestrictUser={handleUnrestrictUser}
                 />
               )}
               {activeTab === "shipments" && (
