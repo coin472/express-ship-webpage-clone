@@ -1,12 +1,12 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { Trash2, Ban, Lock, LockOpen } from "lucide-react";
+import { Trash2, Ban, LockOpen } from "lucide-react";
 
 interface User {
   id: number;
@@ -38,7 +38,7 @@ export const UserEditDialog = ({
   const [editedUser, setEditedUser] = useState<User | null>(null);
 
   // Update local state when user prop changes
-  useState(() => {
+  useEffect(() => {
     if (user) {
       setEditedUser({ ...user });
     }
