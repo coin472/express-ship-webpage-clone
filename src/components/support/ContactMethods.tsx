@@ -1,7 +1,6 @@
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Phone, Mail, MessageCircle, Clock } from "lucide-react";
+import { Phone, Mail, MessageCircle } from "lucide-react";
+import { ContactMethod } from "@/components/ui/contact-method";
 
 const contactMethods = [
   {
@@ -28,28 +27,23 @@ const contactMethods = [
 ];
 
 export const ContactMethods = () => {
+  const handleContact = (method: string) => {
+    console.log(`Contacting via ${method}`);
+    // Add specific contact logic here
+  };
+
   return (
     <div className="grid md:grid-cols-3 gap-6 mb-12">
       {contactMethods.map((method, index) => (
-        <Card key={index} className="text-center hover:shadow-lg transition-shadow">
-          <CardHeader>
-            <div className="mx-auto w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mb-4">
-              <method.icon className="h-8 w-8 text-red-600" />
-            </div>
-            <CardTitle>{method.title}</CardTitle>
-            <p className="text-muted-foreground">{method.description}</p>
-          </CardHeader>
-          <CardContent>
-            <div className="font-semibold text-lg mb-2">{method.detail}</div>
-            <div className="text-sm text-muted-foreground flex items-center justify-center">
-              <Clock className="h-4 w-4 mr-1" />
-              {method.availability}
-            </div>
-            <Button className="w-full mt-4 bg-red-600 hover:bg-red-700">
-              Contact Now
-            </Button>
-          </CardContent>
-        </Card>
+        <ContactMethod
+          key={index}
+          icon={method.icon}
+          title={method.title}
+          description={method.description}
+          detail={method.detail}
+          availability={method.availability}
+          onContact={() => handleContact(method.title)}
+        />
       ))}
     </div>
   );

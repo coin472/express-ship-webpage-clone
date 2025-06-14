@@ -1,11 +1,13 @@
 
+import { HeroSection } from "@/components/ui/hero-section";
+
 export const TrackingHero = () => {
   return (
-    <div className="text-center mb-12">
-      <h1 className="text-4xl font-bold mb-4">Track Your Package</h1>
-      <p className="text-xl text-muted-foreground">
-        Enter your tracking number to get real-time updates on your shipment
-      </p>
-    </div>
+    <HeroSection
+      title="Track Your Package"
+      description="Enter your tracking number to get real-time updates on your shipment"
+      backgroundStyle="none"
+      className="py-0 mb-12"
+    />
   );
 };
