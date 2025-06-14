@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ShipmentForm } from "@/components/ShipmentForm";
+import { ShipmentDetails } from "@/components/ShipmentDetails";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { 
@@ -41,6 +42,8 @@ const UserDashboard = () => {
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("overview");
   const [isShipmentFormOpen, setIsShipmentFormOpen] = useState(false);
+  const [selectedShipment, setSelectedShipment] = useState<Shipment | null>(null);
+  const [isShipmentDetailsOpen, setIsShipmentDetailsOpen] = useState(false);
 
   // Profile form state
   const [profileData, setProfileData] = useState({
@@ -134,6 +137,11 @@ const UserDashboard = () => {
       title: "Shipment Created Successfully!",
       description: `Tracking ID: ${shipmentData.trackingId} - Estimated cost: $${shipmentData.cost.toFixed(2)}`
     });
+  };
+
+  const handleShipmentClick = (shipment: Shipment) => {
+    setSelectedShipment(shipment);
+    setIsShipmentDetailsOpen(true);
   };
 
   const calculateEstimatedDelivery = (serviceType: string) => {
@@ -239,7 +247,11 @@ const UserDashboard = () => {
         <CardContent>
           <div className="space-y-4">
             {shipments.map((shipment) => (
-              <div key={shipment.id} className="flex items-center justify-between p-4 border rounded-lg">
+              <div 
+                key={shipment.id} 
+                className="flex items-center justify-between p-4 border rounded-lg cursor-pointer hover:bg-gray-50 transition-colors"
+                onClick={() => handleShipmentClick(shipment)}
+              >
                 <div className="flex items-center space-x-4">
                   <Package className="h-8 w-8 text-blue-600" />
                   <div>
@@ -426,6 +438,12 @@ const UserDashboard = () => {
         isOpen={isShipmentFormOpen}
         onClose={() => setIsShipmentFormOpen(false)}
         onSubmit={handleShipmentSubmit}
+      />
+
+      <ShipmentDetails
+        isOpen={isShipmentDetailsOpen}
+        onClose={() => setIsShipmentDetailsOpen(false)}
+        shipment={selectedShipment}
       />
 
       <Footer />
