@@ -130,14 +130,6 @@ const AdminPanel = () => {
     });
   };
 
-  const handleDownloadReport = () => {
-    console.log('Downloading report as PDF');
-    toast({
-      title: "Report Downloaded",
-      description: "The comprehensive report has been downloaded as PDF."
-    });
-  };
-
   const handleEditUser = (userId: number, updates: Partial<{ name: string; email: string; role: string; status: string }>) => {
     console.log('Updating user:', userId, updates);
     setUsers(users.map(user => 
@@ -275,7 +267,6 @@ const AdminPanel = () => {
                 <ReportGenerator 
                   reportData={reportData}
                   onGenerateReport={handleGenerateReport}
-                  onDownloadReport={handleDownloadReport}
                 />
               )}
               {activeTab === "settings" && (
