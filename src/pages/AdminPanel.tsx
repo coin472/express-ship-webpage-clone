@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ShipmentForm } from "@/components/ShipmentForm";
+import { SystemNotificationDialog } from "@/components/SystemNotificationDialog";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { 
@@ -30,6 +31,7 @@ const AdminPanel = () => {
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("dashboard");
   const [isShipmentFormOpen, setIsShipmentFormOpen] = useState(false);
+  const [isNotificationDialogOpen, setIsNotificationDialogOpen] = useState(false);
 
   // Redirect if not admin
   if (!isAdmin) {
@@ -63,12 +65,17 @@ const AdminPanel = () => {
     deliveryRate: 98.5
   });
 
-  const handleSendNotification = () => {
-    console.log('Sending system notification');
+  const handleSendNotification = (notification: { title: string; message: string; type: string }) => {
+    console.log('Sending system notification:', notification);
     toast({
-      title: "Notification Sent",
-      description: "System-wide notification has been sent to all users."
+      title: "Notification Sent Successfully!",
+      description: `"${notification.title}" has been sent to all users.`
     });
+  };
+
+  const handleOpenNotificationDialog = () => {
+    console.log('Opening notification dialog');
+    setIsNotificationDialogOpen(true);
   };
 
   const handleCreateShipment = () => {
@@ -267,7 +274,7 @@ const AdminPanel = () => {
             <CardTitle>Quick Actions</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <Button onClick={handleSendNotification} className="w-full">
+            <Button onClick={handleOpenNotificationDialog} className="w-full">
               <Mail className="mr-2 h-4 w-4" />
               Send System Notification
             </Button>
@@ -503,6 +510,12 @@ const AdminPanel = () => {
         isOpen={isShipmentFormOpen}
         onClose={() => setIsShipmentFormOpen(false)}
         onSubmit={handleShipmentSubmit}
+      />
+
+      <SystemNotificationDialog
+        isOpen={isNotificationDialogOpen}
+        onClose={() => setIsNotificationDialogOpen(false)}
+        onSend={handleSendNotification}
       />
     </>
   );
