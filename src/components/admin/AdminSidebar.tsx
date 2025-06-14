@@ -1,6 +1,6 @@
 
 import { Card, CardContent } from "@/components/ui/card";
-import { BarChart3, Users, Package, Settings } from "lucide-react";
+import { BarChart3, Users, Package, Settings, FileText } from "lucide-react";
 
 interface Tab {
   id: string;
@@ -18,6 +18,7 @@ export const AdminSidebar = ({ activeTab, onTabChange }: AdminSidebarProps) => {
     { id: "dashboard", label: "Dashboard", icon: BarChart3 },
     { id: "users", label: "Users", icon: Users },
     { id: "shipments", label: "Shipments", icon: Package },
+    { id: "reports", label: "Reports", icon: FileText },
     { id: "settings", label: "Settings", icon: Settings },
   ];
 

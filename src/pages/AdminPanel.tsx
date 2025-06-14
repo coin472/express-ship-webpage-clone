@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
@@ -9,6 +8,7 @@ import { UserManagement } from "@/components/admin/UserManagement";
 import { ShipmentManagement } from "@/components/admin/ShipmentManagement";
 import { AdminSettings } from "@/components/admin/AdminSettings";
 import { AdminSidebar } from "@/components/admin/AdminSidebar";
+import { ReportGenerator } from "@/components/admin/ReportGenerator";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { Shield } from "lucide-react";
@@ -51,6 +51,35 @@ const AdminPanel = () => {
     activeShipments: 567,
     revenue: 45200,
     deliveryRate: 98.5
+  });
+
+  // Mock report data
+  const [reportData] = useState({
+    shipmentsByStatus: [
+      { name: "Delivered", value: 45, color: "#10b981" },
+      { name: "In Transit", value: 30, color: "#3b82f6" },
+      { name: "Processing", value: 25, color: "#f59e0b" },
+    ],
+    monthlyRevenue: [
+      { month: "Jan", revenue: 12000 },
+      { month: "Feb", revenue: 15000 },
+      { month: "Mar", revenue: 18000 },
+      { month: "Apr", revenue: 22000 },
+      { month: "May", revenue: 25000 },
+      { month: "Jun", revenue: 28000 },
+    ],
+    userActivity: [
+      { category: "New Registrations", count: 45 },
+      { category: "Active Shipments", count: 67 },
+      { category: "Support Tickets", count: 23 },
+      { category: "Feedback Submissions", count: 12 },
+    ],
+    summary: {
+      totalShipments: 567,
+      totalRevenue: 45200,
+      totalUsers: 1234,
+      deliveryRate: 98.5,
+    },
   });
 
   const handleSendNotification = (notification: { title: string; message: string; type: string }) => {
@@ -103,6 +132,14 @@ const AdminPanel = () => {
     toast({
       title: "Report Generated",
       description: "Monthly report has been generated and will be emailed to you."
+    });
+  };
+
+  const handleDownloadReport = () => {
+    console.log('Downloading report as PDF');
+    toast({
+      title: "Report Downloaded",
+      description: "The comprehensive report has been downloaded as PDF."
     });
   };
 
@@ -214,6 +251,13 @@ const AdminPanel = () => {
                 <ShipmentManagement 
                   shipments={shipments}
                   onUpdateShipment={handleUpdateShipment}
+                />
+              )}
+              {activeTab === "reports" && (
+                <ReportGenerator 
+                  reportData={reportData}
+                  onGenerateReport={handleGenerateReport}
+                  onDownloadReport={handleDownloadReport}
                 />
               )}
               {activeTab === "settings" && (
