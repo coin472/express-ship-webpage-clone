@@ -1,85 +1,164 @@
 
 import { useState } from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { FormInput } from "@/components/ui/form-input";
+import { FormTextarea } from "@/components/ui/form-textarea";
+import { FormRadioGroup } from "@/components/ui/form-radio-group";
+import { FormCheckbox } from "@/components/ui/form-checkbox";
 import { useToast } from "@/hooks/use-toast";
-import { Package, Truck, Clock, DollarSign } from "lucide-react";
+import { Package, Truck, Clock } from "lucide-react";
 
-const shipmentSchema = z.object({
+interface ShipmentData {
   // Sender Information
-  senderName: z.string().min(2, "Sender name must be at least 2 characters"),
-  senderPhone: z.string().min(10, "Phone number must be at least 10 digits"),
-  senderAddress: z.string().min(10, "Address must be at least 10 characters"),
-  senderCity: z.string().min(2, "City is required"),
-  senderState: z.string().min(2, "State is required"),
-  senderZip: z.string().min(5, "ZIP code must be at least 5 digits"),
+  senderName: string;
+  senderPhone: string;
+  senderAddress: string;
+  senderCity: string;
+  senderState: string;
+  senderZip: string;
   
   // Recipient Information
-  recipientName: z.string().min(2, "Recipient name must be at least 2 characters"),
-  recipientPhone: z.string().min(10, "Phone number must be at least 10 digits"),
-  recipientAddress: z.string().min(10, "Address must be at least 10 characters"),
-  recipientCity: z.string().min(2, "City is required"),
-  recipientState: z.string().min(2, "State is required"),
-  recipientZip: z.string().min(5, "ZIP code must be at least 5 digits"),
+  recipientName: string;
+  recipientPhone: string;
+  recipientAddress: string;
+  recipientCity: string;
+  recipientState: string;
+  recipientZip: string;
   
   // Package Information
-  packageDescription: z.string().min(5, "Package description must be at least 5 characters"),
-  weight: z.number().min(0.1, "Weight must be at least 0.1 lbs"),
-  length: z.number().min(1, "Length must be at least 1 inch"),
-  width: z.number().min(1, "Width must be at least 1 inch"),
-  height: z.number().min(1, "Height must be at least 1 inch"),
-  value: z.number().min(1, "Package value must be at least $1"),
+  packageDescription: string;
+  weight: number;
+  length: number;
+  width: number;
+  height: number;
+  value: number;
   
   // Service Options
-  serviceType: z.enum(["express", "standard", "economy"]),
-  signatureRequired: z.boolean().default(false),
-  insurance: z.boolean().default(false),
-});
-
-type ShipmentFormData = z.infer<typeof shipmentSchema>;
+  serviceType: string;
+  signatureRequired: boolean;
+  insurance: boolean;
+}
 
 interface ShipmentFormProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (data: ShipmentFormData & { cost: number; trackingId: string }) => void;
+  onSubmit: (data: ShipmentData & { cost: number; trackingId: string }) => void;
 }
 
 export const ShipmentForm = ({ isOpen, onClose, onSubmit }: ShipmentFormProps) => {
   const { toast } = useToast();
   const [step, setStep] = useState(1);
-  const [estimatedCost, setEstimatedCost] = useState(0);
-
-  const {
-    register,
-    handleSubmit,
-    watch,
-    formState: { errors },
-    reset,
-  } = useForm<ShipmentFormData>({
-    resolver: zodResolver(shipmentSchema),
-    defaultValues: {
-      serviceType: "standard",
-      signatureRequired: false,
-      insurance: false,
-    },
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [formData, setFormData] = useState<ShipmentData>({
+    senderName: "",
+    senderPhone: "",
+    senderAddress: "",
+    senderCity: "",
+    senderState: "",
+    senderZip: "",
+    recipientName: "",
+    recipientPhone: "",
+    recipientAddress: "",
+    recipientCity: "",
+    recipientState: "",
+    recipientZip: "",
+    packageDescription: "",
+    weight: 0,
+    length: 0,
+    width: 0,
+    height: 0,
+    value: 0,
+    serviceType: "standard",
+    signatureRequired: false,
+    insurance: false,
   });
 
-  const watchedValues = watch();
+  const updateField = (field: keyof ShipmentData, value: string | number | boolean) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+    // Clear error when user starts typing
+    if (errors[field]) {
+      setErrors(prev => ({ ...prev, [field]: "" }));
+    }
+  };
 
-  // Calculate estimated cost based on weight, dimensions, and service type
-  const calculateCost = () => {
-    const { weight, length, width, height, serviceType, insurance } = watchedValues;
+  const validateStep = (currentStep: number): boolean => {
+    const newErrors: Record<string, string> = {};
+
+    if (currentStep === 1) {
+      if (!formData.senderName || formData.senderName.length < 2) {
+        newErrors.senderName = "Sender name must be at least 2 characters";
+      }
+      if (!formData.senderPhone || formData.senderPhone.length < 10) {
+        newErrors.senderPhone = "Phone number must be at least 10 digits";
+      }
+      if (!formData.senderAddress || formData.senderAddress.length < 10) {
+        newErrors.senderAddress = "Address must be at least 10 characters";
+      }
+      if (!formData.senderCity || formData.senderCity.length < 2) {
+        newErrors.senderCity = "City is required";
+      }
+      if (!formData.senderState || formData.senderState.length < 2) {
+        newErrors.senderState = "State is required";
+      }
+      if (!formData.senderZip || formData.senderZip.length < 5) {
+        newErrors.senderZip = "ZIP code must be at least 5 digits";
+      }
+    }
+
+    if (currentStep === 2) {
+      if (!formData.recipientName || formData.recipientName.length < 2) {
+        newErrors.recipientName = "Recipient name must be at least 2 characters";
+      }
+      if (!formData.recipientPhone || formData.recipientPhone.length < 10) {
+        newErrors.recipientPhone = "Phone number must be at least 10 digits";
+      }
+      if (!formData.recipientAddress || formData.recipientAddress.length < 10) {
+        newErrors.recipientAddress = "Address must be at least 10 characters";
+      }
+      if (!formData.recipientCity || formData.recipientCity.length < 2) {
+        newErrors.recipientCity = "City is required";
+      }
+      if (!formData.recipientState || formData.recipientState.length < 2) {
+        newErrors.recipientState = "State is required";
+      }
+      if (!formData.recipientZip || formData.recipientZip.length < 5) {
+        newErrors.recipientZip = "ZIP code must be at least 5 digits";
+      }
+    }
+
+    if (currentStep === 3) {
+      if (!formData.packageDescription || formData.packageDescription.length < 5) {
+        newErrors.packageDescription = "Package description must be at least 5 characters";
+      }
+      if (!formData.weight || formData.weight < 0.1) {
+        newErrors.weight = "Weight must be at least 0.1 lbs";
+      }
+      if (!formData.length || formData.length < 1) {
+        newErrors.length = "Length must be at least 1 inch";
+      }
+      if (!formData.width || formData.width < 1) {
+        newErrors.width = "Width must be at least 1 inch";
+      }
+      if (!formData.height || formData.height < 1) {
+        newErrors.height = "Height must be at least 1 inch";
+      }
+      if (!formData.value || formData.value < 1) {
+        newErrors.value = "Package value must be at least $1";
+      }
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const calculateCost = (): number => {
+    const { weight, length, width, height, serviceType, insurance, signatureRequired } = formData;
     
     if (!weight || !length || !width || !height) return 0;
     
-    const dimensionalWeight = (length * width * height) / 166; // Standard dimensional weight divisor
+    const dimensionalWeight = (length * width * height) / 166;
     const billableWeight = Math.max(weight, dimensionalWeight);
     
     let baseCost = 0;
@@ -95,38 +174,66 @@ export const ShipmentForm = ({ isOpen, onClose, onSubmit }: ShipmentFormProps) =
         break;
     }
     
-    if (insurance) baseCost += watchedValues.value * 0.02; // 2% of package value for insurance
+    if (insurance) baseCost += formData.value * 0.02;
+    if (signatureRequired) baseCost += 5;
     
-    return Math.max(baseCost, 15); // Minimum shipping cost
+    return Math.max(baseCost, 15);
   };
 
-  // Update cost estimate when relevant fields change
-  useState(() => {
-    const cost = calculateCost();
-    setEstimatedCost(cost);
-  });
-
-  const generateTrackingId = () => {
+  const generateTrackingId = (): string => {
     return "ES" + Math.random().toString(36).substr(2, 9).toUpperCase();
   };
 
-  const handleFormSubmit = (data: ShipmentFormData) => {
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!validateStep(step)) return;
+    
     const cost = calculateCost();
     const trackingId = generateTrackingId();
     
-    onSubmit({ ...data, cost, trackingId });
+    onSubmit({ ...formData, cost, trackingId });
     
     toast({
       title: "Shipment Created Successfully!",
       description: `Your tracking ID is ${trackingId}. Estimated cost: $${cost.toFixed(2)}`,
     });
     
-    reset();
+    // Reset form
+    setFormData({
+      senderName: "",
+      senderPhone: "",
+      senderAddress: "",
+      senderCity: "",
+      senderState: "",
+      senderZip: "",
+      recipientName: "",
+      recipientPhone: "",
+      recipientAddress: "",
+      recipientCity: "",
+      recipientState: "",
+      recipientZip: "",
+      packageDescription: "",
+      weight: 0,
+      length: 0,
+      width: 0,
+      height: 0,
+      value: 0,
+      serviceType: "standard",
+      signatureRequired: false,
+      insurance: false,
+    });
     setStep(1);
+    setErrors({});
     onClose();
   };
 
-  const nextStep = () => setStep(step + 1);
+  const nextStep = () => {
+    if (validateStep(step)) {
+      setStep(step + 1);
+    }
+  };
+
   const prevStep = () => setStep(step - 1);
 
   const serviceOptions = [
@@ -135,6 +242,8 @@ export const ShipmentForm = ({ isOpen, onClose, onSubmit }: ShipmentFormProps) =
     { value: "economy", label: "Economy (7-10 days)", icon: Package, color: "text-green-600" },
   ];
 
+  const estimatedCost = calculateCost();
+
   const renderStep = () => {
     switch (step) {
       case 1:
@@ -142,38 +251,50 @@ export const ShipmentForm = ({ isOpen, onClose, onSubmit }: ShipmentFormProps) =
           <div className="space-y-4">
             <h3 className="text-lg font-semibold">Sender Information</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="senderName">Full Name</Label>
-                <Input id="senderName" {...register("senderName")} />
-                {errors.senderName && <p className="text-sm text-red-600">{errors.senderName.message}</p>}
-              </div>
-              <div>
-                <Label htmlFor="senderPhone">Phone Number</Label>
-                <Input id="senderPhone" {...register("senderPhone")} />
-                {errors.senderPhone && <p className="text-sm text-red-600">{errors.senderPhone.message}</p>}
-              </div>
+              <FormInput
+                id="senderName"
+                label="Full Name"
+                value={formData.senderName}
+                onChange={(value) => updateField("senderName", value)}
+                error={errors.senderName}
+              />
+              <FormInput
+                id="senderPhone"
+                label="Phone Number"
+                value={formData.senderPhone}
+                onChange={(value) => updateField("senderPhone", value)}
+                error={errors.senderPhone}
+              />
             </div>
-            <div>
-              <Label htmlFor="senderAddress">Street Address</Label>
-              <Input id="senderAddress" {...register("senderAddress")} />
-              {errors.senderAddress && <p className="text-sm text-red-600">{errors.senderAddress.message}</p>}
-            </div>
+            <FormInput
+              id="senderAddress"
+              label="Street Address"
+              value={formData.senderAddress}
+              onChange={(value) => updateField("senderAddress", value)}
+              error={errors.senderAddress}
+            />
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <Label htmlFor="senderCity">City</Label>
-                <Input id="senderCity" {...register("senderCity")} />
-                {errors.senderCity && <p className="text-sm text-red-600">{errors.senderCity.message}</p>}
-              </div>
-              <div>
-                <Label htmlFor="senderState">State</Label>
-                <Input id="senderState" {...register("senderState")} />
-                {errors.senderState && <p className="text-sm text-red-600">{errors.senderState.message}</p>}
-              </div>
-              <div>
-                <Label htmlFor="senderZip">ZIP Code</Label>
-                <Input id="senderZip" {...register("senderZip")} />
-                {errors.senderZip && <p className="text-sm text-red-600">{errors.senderZip.message}</p>}
-              </div>
+              <FormInput
+                id="senderCity"
+                label="City"
+                value={formData.senderCity}
+                onChange={(value) => updateField("senderCity", value)}
+                error={errors.senderCity}
+              />
+              <FormInput
+                id="senderState"
+                label="State"
+                value={formData.senderState}
+                onChange={(value) => updateField("senderState", value)}
+                error={errors.senderState}
+              />
+              <FormInput
+                id="senderZip"
+                label="ZIP Code"
+                value={formData.senderZip}
+                onChange={(value) => updateField("senderZip", value)}
+                error={errors.senderZip}
+              />
             </div>
           </div>
         );
@@ -183,38 +304,50 @@ export const ShipmentForm = ({ isOpen, onClose, onSubmit }: ShipmentFormProps) =
           <div className="space-y-4">
             <h3 className="text-lg font-semibold">Recipient Information</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="recipientName">Full Name</Label>
-                <Input id="recipientName" {...register("recipientName")} />
-                {errors.recipientName && <p className="text-sm text-red-600">{errors.recipientName.message}</p>}
-              </div>
-              <div>
-                <Label htmlFor="recipientPhone">Phone Number</Label>
-                <Input id="recipientPhone" {...register("recipientPhone")} />
-                {errors.recipientPhone && <p className="text-sm text-red-600">{errors.recipientPhone.message}</p>}
-              </div>
+              <FormInput
+                id="recipientName"
+                label="Full Name"
+                value={formData.recipientName}
+                onChange={(value) => updateField("recipientName", value)}
+                error={errors.recipientName}
+              />
+              <FormInput
+                id="recipientPhone"
+                label="Phone Number"
+                value={formData.recipientPhone}
+                onChange={(value) => updateField("recipientPhone", value)}
+                error={errors.recipientPhone}
+              />
             </div>
-            <div>
-              <Label htmlFor="recipientAddress">Street Address</Label>
-              <Input id="recipientAddress" {...register("recipientAddress")} />
-              {errors.recipientAddress && <p className="text-sm text-red-600">{errors.recipientAddress.message}</p>}
-            </div>
+            <FormInput
+              id="recipientAddress"
+              label="Street Address"
+              value={formData.recipientAddress}
+              onChange={(value) => updateField("recipientAddress", value)}
+              error={errors.recipientAddress}
+            />
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <Label htmlFor="recipientCity">City</Label>
-                <Input id="recipientCity" {...register("recipientCity")} />
-                {errors.recipientCity && <p className="text-sm text-red-600">{errors.recipientCity.message}</p>}
-              </div>
-              <div>
-                <Label htmlFor="recipientState">State</Label>
-                <Input id="recipientState" {...register("recipientState")} />
-                {errors.recipientState && <p className="text-sm text-red-600">{errors.recipientState.message}</p>}
-              </div>
-              <div>
-                <Label htmlFor="recipientZip">ZIP Code</Label>
-                <Input id="recipientZip" {...register("recipientZip")} />
-                {errors.recipientZip && <p className="text-sm text-red-600">{errors.recipientZip.message}</p>}
-              </div>
+              <FormInput
+                id="recipientCity"
+                label="City"
+                value={formData.recipientCity}
+                onChange={(value) => updateField("recipientCity", value)}
+                error={errors.recipientCity}
+              />
+              <FormInput
+                id="recipientState"
+                label="State"
+                value={formData.recipientState}
+                onChange={(value) => updateField("recipientState", value)}
+                error={errors.recipientState}
+              />
+              <FormInput
+                id="recipientZip"
+                label="ZIP Code"
+                value={formData.recipientZip}
+                onChange={(value) => updateField("recipientZip", value)}
+                error={errors.recipientZip}
+              />
             </div>
           </div>
         );
@@ -223,38 +356,58 @@ export const ShipmentForm = ({ isOpen, onClose, onSubmit }: ShipmentFormProps) =
         return (
           <div className="space-y-4">
             <h3 className="text-lg font-semibold">Package Details</h3>
-            <div>
-              <Label htmlFor="packageDescription">Package Description</Label>
-              <Textarea id="packageDescription" {...register("packageDescription")} placeholder="Describe the contents of your package" />
-              {errors.packageDescription && <p className="text-sm text-red-600">{errors.packageDescription.message}</p>}
-            </div>
+            <FormTextarea
+              id="packageDescription"
+              label="Package Description"
+              placeholder="Describe the contents of your package"
+              value={formData.packageDescription}
+              onChange={(value) => updateField("packageDescription", value)}
+              error={errors.packageDescription}
+            />
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div>
-                <Label htmlFor="weight">Weight (lbs)</Label>
-                <Input id="weight" type="number" step="0.1" {...register("weight", { valueAsNumber: true })} />
-                {errors.weight && <p className="text-sm text-red-600">{errors.weight.message}</p>}
-              </div>
-              <div>
-                <Label htmlFor="length">Length (in)</Label>
-                <Input id="length" type="number" {...register("length", { valueAsNumber: true })} />
-                {errors.length && <p className="text-sm text-red-600">{errors.length.message}</p>}
-              </div>
-              <div>
-                <Label htmlFor="width">Width (in)</Label>
-                <Input id="width" type="number" {...register("width", { valueAsNumber: true })} />
-                {errors.width && <p className="text-sm text-red-600">{errors.width.message}</p>}
-              </div>
-              <div>
-                <Label htmlFor="height">Height (in)</Label>
-                <Input id="height" type="number" {...register("height", { valueAsNumber: true })} />
-                {errors.height && <p className="text-sm text-red-600">{errors.height.message}</p>}
-              </div>
+              <FormInput
+                id="weight"
+                label="Weight (lbs)"
+                type="number"
+                step="0.1"
+                value={formData.weight}
+                onChange={(value) => updateField("weight", value)}
+                error={errors.weight}
+              />
+              <FormInput
+                id="length"
+                label="Length (in)"
+                type="number"
+                value={formData.length}
+                onChange={(value) => updateField("length", value)}
+                error={errors.length}
+              />
+              <FormInput
+                id="width"
+                label="Width (in)"
+                type="number"
+                value={formData.width}
+                onChange={(value) => updateField("width", value)}
+                error={errors.width}
+              />
+              <FormInput
+                id="height"
+                label="Height (in)"
+                type="number"
+                value={formData.height}
+                onChange={(value) => updateField("height", value)}
+                error={errors.height}
+              />
             </div>
-            <div>
-              <Label htmlFor="value">Package Value ($)</Label>
-              <Input id="value" type="number" step="0.01" {...register("value", { valueAsNumber: true })} />
-              {errors.value && <p className="text-sm text-red-600">{errors.value.message}</p>}
-            </div>
+            <FormInput
+              id="value"
+              label="Package Value ($)"
+              type="number"
+              step="0.01"
+              value={formData.value}
+              onChange={(value) => updateField("value", value)}
+              error={errors.value}
+            />
           </div>
         );
 
@@ -262,46 +415,26 @@ export const ShipmentForm = ({ isOpen, onClose, onSubmit }: ShipmentFormProps) =
         return (
           <div className="space-y-4">
             <h3 className="text-lg font-semibold">Service Options</h3>
+            <FormRadioGroup
+              name="serviceType"
+              label="Service Type"
+              options={serviceOptions}
+              value={formData.serviceType}
+              onChange={(value) => updateField("serviceType", value)}
+            />
             <div className="space-y-3">
-              {serviceOptions.map((option) => (
-                <div key={option.value} className="flex items-center space-x-3 p-3 border rounded-lg">
-                  <input
-                    type="radio"
-                    id={option.value}
-                    value={option.value}
-                    {...register("serviceType")}
-                    className="h-4 w-4"
-                  />
-                  <option.icon className={`h-5 w-5 ${option.color}`} />
-                  <label htmlFor={option.value} className="flex-1 cursor-pointer">
-                    {option.label}
-                  </label>
-                </div>
-              ))}
-            </div>
-            <div className="space-y-3">
-              <div className="flex items-center space-x-3">
-                <input
-                  type="checkbox"
-                  id="signatureRequired"
-                  {...register("signatureRequired")}
-                  className="h-4 w-4"
-                />
-                <label htmlFor="signatureRequired" className="cursor-pointer">
-                  Signature Required (+$5.00)
-                </label>
-              </div>
-              <div className="flex items-center space-x-3">
-                <input
-                  type="checkbox"
-                  id="insurance"
-                  {...register("insurance")}
-                  className="h-4 w-4"
-                />
-                <label htmlFor="insurance" className="cursor-pointer">
-                  Insurance (2% of package value)
-                </label>
-              </div>
+              <FormCheckbox
+                id="signatureRequired"
+                label="Signature Required (+$5.00)"
+                checked={formData.signatureRequired}
+                onChange={(checked) => updateField("signatureRequired", checked)}
+              />
+              <FormCheckbox
+                id="insurance"
+                label="Insurance (2% of package value)"
+                checked={formData.insurance}
+                onChange={(checked) => updateField("insurance", checked)}
+              />
             </div>
             {estimatedCost > 0 && (
               <Card>
@@ -351,7 +484,7 @@ export const ShipmentForm = ({ isOpen, onClose, onSubmit }: ShipmentFormProps) =
           ))}
         </div>
 
-        <form onSubmit={handleSubmit(handleFormSubmit)}>
+        <form onSubmit={handleSubmit}>
           {renderStep()}
           
           <div className="flex justify-between mt-6">
