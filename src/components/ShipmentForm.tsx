@@ -113,7 +113,6 @@ export const ShipmentForm = ({ isOpen, onClose, onSubmit }: ShipmentFormProps) =
   const handleFormSubmit = (data: ShipmentFormData) => {
     const cost = calculateCost();
     const trackingId = generateTrackingId();
-    
     onSubmit({ ...data, cost, trackingId });
     
     toast({

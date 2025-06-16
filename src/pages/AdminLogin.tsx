@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { Shield, Eye, EyeOff } from "lucide-react";
+import { adminUser } from "@/lib/adminUser";
 
 const AdminLogin = () => {
   const [email, setEmail] = useState("");

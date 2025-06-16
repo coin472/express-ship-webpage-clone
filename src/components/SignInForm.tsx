@@ -24,7 +24,7 @@ export const SignInForm = ({ trigger }: { trigger: React.ReactNode }) => {
     rememberMe: false
   });
 
-  const { login, register } = useAuth();
+  const { login, register, isAdmin } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -49,7 +49,7 @@ export const SignInForm = ({ trigger }: { trigger: React.ReactNode }) => {
         }
 
         const fullName = `${formData.firstName} ${formData.lastName}`.trim();
-        const success = await register(formData.email, formData.password, fullName);
+        const success = await register(formData.email, formData.password, formData.confirmPassword, fullName);
         
         if (success) {
           toast({
@@ -65,23 +65,41 @@ export const SignInForm = ({ trigger }: { trigger: React.ReactNode }) => {
             variant: "destructive"
           });
         }
-      } else {
+      } else {        
         const success = await login(formData.email, formData.password);
-        
-        if (success) {
+        if (success === true) {
           toast({
             title: "Welcome Back",
-            description: "You have been successfully signed in."
+            description: "You have been successfully signed in.",
           });
           setOpen(false);
-          navigate("/dashboard");
-        } else {
+          if(isAdmin){
+            navigate("/admin-panel");
+          }else{
+            navigate("/dashboard");
+          }
+        } else if (typeof success === 'string') {
+          // PocketBase returned a known error
           toast({
             title: "Sign In Failed",
-            description: "Invalid email or password.",
-            variant: "destructive"
+            description: success, // Show the actual error message
+            variant: "destructive",
           });
+        } else if (success === false) {
+          // Likely input error (e.g., empty fields, short password)
+          toast({
+            title: "Sign In Failed",
+            description: "Please enter a valid email and password.",
+            variant: "destructive",
+          });
+        }else {
+          toast({
+            title: "Sign In Failed",
+            description: "Please try again an error occur",
+            variant: "destructive",
+          })
         }
+
       }
     } catch (error) {
       toast({

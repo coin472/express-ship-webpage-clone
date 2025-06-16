@@ -1,19 +1,16 @@
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import { adminUser } from '@/lib/adminUser';
+import { ExpressUser, signIn, signOut, signUp } from '@/lib/pocketbase';
+import { createContext, useContext, useState, useEffect } from 'react';
 
-interface User {
-  id: string;
-  email: string;
-  name: string;
-  role: 'admin' | 'user';
-}
+
 
 interface AuthContextType {
-  user: User | null;
-  login: (email: string, password: string) => Promise<boolean>;
+  user: ExpressUser | null;
+  login: (email: string, password: string) => Promise<boolean|string>;
   logout: () => void;
-  register: (email: string, password: string, name: string) => Promise<boolean>;
-  isAdmin: boolean;
+  register: (email: string, password: string,passwordConfirm:string, name: string) => Promise<boolean>;
+  isAdmin?: boolean;
   isLoading: boolean;
 }
 
@@ -28,8 +25,11 @@ export const useAuth = () => {
 };
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<ExpressUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isAdmin,setIsAdmin] = useState(false)
+
+
 
   // Load user from localStorage on mount
   useEffect(() => {
@@ -46,71 +46,57 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, []);
 
-  const login = async (email: string, password: string): Promise<boolean> => {
-    console.log('Login attempt:', email);
-    
-    // Hardcoded admin credentials
-    if (email === 'admin@expressship.com' && password === 'admin123') {
-      const adminUser: User = {
-        id: 'admin-1',
-        email: 'admin@expressship.com',
-        name: 'Admin User',
-        role: 'admin'
-      };
-      setUser(adminUser);
-      localStorage.setItem('user', JSON.stringify(adminUser));
-      console.log('Admin login successful');
-      return true;
+const login = async (email: string, password: string): Promise<boolean | string> => {
+  // ✅ Admin login (exit early)
+  if (email === adminUser.email && password === adminUser.password) {
+    setUser(adminUser);
+    localStorage.setItem('user', JSON.stringify(adminUser));
+    setIsAdmin(true)
+    return true;
+  }
+
+  // ✅ Regular user login
+  if (email && password && password.length >= 6) {
+    const login = await signIn(email, password);
+
+    if (!login.success) {
+      return login.error; // ❌ Login failed
     }
 
-    // Simulate user login (in real app, this would be API call)
-    if (email && password && password.length >= 6) {
-      const regularUser: User = {
-        id: 'user-' + Date.now(),
-        email,
-        name: email.split('@')[0],
-        role: 'user'
-      };
-      setUser(regularUser);
-      localStorage.setItem('user', JSON.stringify(regularUser));
-      console.log('User login successful');
-      return true;
-    }
+    const getUser = login.user;
+    setUser(getUser);
+    localStorage.setItem('user', JSON.stringify(getUser));
+    return true;
+  }
 
-    console.log('Login failed');
-    return false;
-  };
+  // ⚠️ Invalid input
+  return false;
+};
 
-  const register = async (email: string, password: string, name: string): Promise<boolean> => {
-    console.log('Registration attempt:', email, name);
-    
+  
+  const register = async (email: string, password: string, passwordConfirm: string, name: string): Promise<boolean> => {
     // Simulate registration (in real app, this would be API call)
     if (email && password && password.length >= 6 && name) {
-      const newUser: User = {
-        id: 'user-' + Date.now(),
-        email,
-        name,
-        role: 'user'
-      };
-      setUser(newUser);
-      localStorage.setItem('user', JSON.stringify(newUser));
+      const createUser = await signUp(email,password,passwordConfirm,name)
+      const user = createUser?.user
+      setUser(user);
+      localStorage.setItem('user', JSON.stringify(user));
       console.log('Registration successful');
       return true;
     }
-    console.log('Registration failed');
     return false;
   };
 
-  const logout = () => {
-    console.log('User logged out');
+  const logout = async () => {
+    await signOut();
+    console.log('user logged out');
     setUser(null);
     localStorage.removeItem('user');
   };
 
-  const isAdmin = user?.role === 'admin';
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, register, isAdmin, isLoading }}>
+    <AuthContext.Provider value={{ user, login, logout, isAdmin, register, isLoading }}>
       {children}
     </AuthContext.Provider>
   );

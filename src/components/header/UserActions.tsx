@@ -11,7 +11,7 @@ interface UserActionsProps {
 }
 
 export const UserActions = ({ onShipNow }: UserActionsProps) => {
-  const { user, logout } = useAuth();
+  const { user, logout, isAdmin } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -36,10 +36,18 @@ export const UserActions = ({ onShipNow }: UserActionsProps) => {
     <div className="hidden md:flex items-center space-x-4">
       {user ? (
         <div className="flex items-center space-x-4">
-          {user.role === 'admin' ? (
-            <Link to="/admin-panel">
-              <Button variant="outline">Admin Panel</Button>
-            </Link>
+          {isAdmin ? (
+            <>
+              <Link to="/admin-panel">
+                <Button variant="outline">Admin Panel</Button>
+              </Link>
+              <Link to="/dashboard">
+                <Button variant="outline" className="flex items-center">
+                  <User className="mr-2 h-4 w-4" />
+                  Dashboard
+                </Button>
+              </Link>
+            </>
           ) : (
             <Link to="/dashboard">
               <Button variant="outline" className="flex items-center">

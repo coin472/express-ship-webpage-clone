@@ -253,7 +253,7 @@ const Tracking = () => {
               </div>
             </CardContent>
           </Card>
-
+          {/* Show tracking results */}
           {showResults && trackingData.length > 0 && (
             <Card>
               <CardHeader>
