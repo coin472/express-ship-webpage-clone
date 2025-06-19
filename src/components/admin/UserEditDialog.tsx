@@ -37,11 +37,15 @@ export const UserEditDialog = ({
   onUnrestrict 
 }: UserEditDialogProps) => {
   const [editedUser, setEditedUser] = useState<ExpressUser | null>(null);
+  const [userRole, setUserRole] = useState<string>("user");
+  const [userStatus, setUserStatus] = useState<string>("active");
 
   // Update local state when user prop changes
   useEffect(() => {
     if (user) {
       setEditedUser({ ...user });
+      setUserRole("user"); // Default role since it's not in ExpressUser
+      setUserStatus("active"); // Default status since it's not in ExpressUser
     }
   }, [user]);
 
@@ -51,9 +55,7 @@ export const UserEditDialog = ({
     if (editedUser) {
       onSave(user.id, {
         name: editedUser.name,
-        email: editedUser.email,
-        role: "user",
-        status: editedUser.status
+        email: editedUser.email
       });
       onClose();
     }
@@ -112,8 +114,8 @@ export const UserEditDialog = ({
               Role
             </Label>
             <Select 
-              value={editedUser.role} 
-              onValueChange={(value) => setEditedUser({ ...editedUser, role: value })}
+              value={userRole} 
+              onValueChange={(value) => setUserRole(value)}
             >
               <SelectTrigger className="col-span-3">
                 <SelectValue />
@@ -131,8 +133,8 @@ export const UserEditDialog = ({
               Status
             </Label>
             <Select 
-              value={editedUser.status} 
-              onValueChange={(value) => setEditedUser({ ...editedUser, status: value })}
+              value={userStatus} 
+              onValueChange={(value) => setUserStatus(value)}
             >
               <SelectTrigger className="col-span-3">
                 <SelectValue />
@@ -150,7 +152,7 @@ export const UserEditDialog = ({
         <div className="flex flex-col gap-2 border-t pt-4">
           <h4 className="text-sm font-medium text-gray-700">Quick Actions</h4>
           <div className="flex gap-2">
-            {user.status !== 'restricted' ? (
+            {userStatus !== 'restricted' ? (
               <Button 
                 onClick={handleRestrict}
                 variant="outline" 
