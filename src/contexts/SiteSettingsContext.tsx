@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 
@@ -47,8 +46,12 @@ interface SiteSettings {
 
 interface SiteSettingsContextType {
   siteSettings: SiteSettings;
-  updateSiteSettings: (settings: Partial<SiteSettings>) => void;
+  updateSiteName: (value: string) => void;
+  updateContactEmail: (value: string) => void;
+  updateMaintenanceMode: (value: boolean) => void;
+  updateContactInfo: (section: string, field: string, value: string) => void;
   saveSiteSettings: () => void;
+  hasUnsavedChanges: boolean;
 }
 
 const defaultContactInfo: ContactInfo = {
@@ -98,6 +101,7 @@ const SiteSettingsContext = createContext<SiteSettingsContextType | undefined>(u
 
 export const SiteSettingsProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [siteSettings, setSiteSettings] = useState<SiteSettings>(defaultSettings);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const { toast } = useToast();
 
   // Load settings from localStorage on mount
@@ -143,11 +147,33 @@ export const SiteSettingsProvider: React.FC<{ children: React.ReactNode }> = ({ 
     }
   };
 
-  const updateSiteSettings = (newSettings: Partial<SiteSettings>) => {
-    setSiteSettings(prev => {
-      const updated = { ...prev, ...newSettings };
-      return updated;
-    });
+  const updateSiteName = (value: string) => {
+    setSiteSettings(prev => ({ ...prev, siteName: value }));
+    setHasUnsavedChanges(true);
+  };
+
+  const updateContactEmail = (value: string) => {
+    setSiteSettings(prev => ({ ...prev, contactEmail: value }));
+    setHasUnsavedChanges(true);
+  };
+
+  const updateMaintenanceMode = (value: boolean) => {
+    setSiteSettings(prev => ({ ...prev, maintenanceMode: value }));
+    setHasUnsavedChanges(true);
+  };
+
+  const updateContactInfo = (section: string, field: string, value: string) => {
+    setSiteSettings(prev => ({
+      ...prev,
+      contactInfo: {
+        ...prev.contactInfo,
+        [section]: {
+          ...prev.contactInfo[section as keyof ContactInfo],
+          [field]: value
+        }
+      }
+    }));
+    setHasUnsavedChanges(true);
   };
 
   const saveSiteSettings = () => {
@@ -157,6 +183,9 @@ export const SiteSettingsProvider: React.FC<{ children: React.ReactNode }> = ({ 
       
       // Apply the settings
       applySettings(siteSettings);
+      
+      // Reset unsaved changes flag
+      setHasUnsavedChanges(false);
       
       toast({
         title: "Settings Saved Successfully!",
@@ -176,7 +205,15 @@ export const SiteSettingsProvider: React.FC<{ children: React.ReactNode }> = ({ 
   };
 
   return (
-    <SiteSettingsContext.Provider value={{ siteSettings, updateSiteSettings, saveSiteSettings }}>
+    <SiteSettingsContext.Provider value={{ 
+      siteSettings, 
+      updateSiteName,
+      updateContactEmail,
+      updateMaintenanceMode,
+      updateContactInfo,
+      saveSiteSettings,
+      hasUnsavedChanges
+    }}>
       {children}
     </SiteSettingsContext.Provider>
   );

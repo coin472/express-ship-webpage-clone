@@ -9,83 +9,55 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ContactInfoSettings } from "./ContactInfoSettings";
 import { useForm } from "react-hook-form";
 import { useEffect } from "react";
+import { useSiteSettings } from "@/contexts/SiteSettingsContext";
 
-interface SiteSettings {
-  siteName: string;
-  contactEmail: string;
-  maintenanceMode: boolean;
-  contactInfo: {
-    headquarters: {
-      address: string;
-      city: string;
-      state: string;
-      zip: string;
-    };
-    westCoastHub: {
-      address: string;
-      city: string;
-      state: string;
-      zip: string;
-    };
-    internationalCenter: {
-      address: string;
-      city: string;
-      state: string;
-      zip: string;
-    };
-    phoneNumbers: {
-      customerService: string;
-      businessSolutions: string;
-      international: string;
-    };
-    businessHours: {
-      mondayFriday: string;
-      saturday: string;
-      sunday: string;
-    };
-    emailAddresses: {
-      generalSupport: string;
-      salesInquiries: string;
-      technicalSupport: string;
-    };
-  };
-}
+export const AdminSettings = () => {
+  const { 
+    siteSettings, 
+    updateSiteName,
+    updateContactEmail,
+    updateMaintenanceMode,
+    updateContactInfo,
+    saveSiteSettings,
+    hasUnsavedChanges
+  } = useSiteSettings();
 
-interface AdminSettingsProps {
-  siteSettings: SiteSettings;
-  onSettingChange: (field: string, value: string | boolean) => void;
-  onSaveSettings: () => void;
-}
-
-export const AdminSettings = ({ siteSettings, onSettingChange, onSaveSettings }: AdminSettingsProps) => {
-  const form = useForm<SiteSettings>({
-    defaultValues: siteSettings,
+  const form = useForm({
+    defaultValues: {
+      siteName: siteSettings.siteName,
+      contactEmail: siteSettings.contactEmail,
+      maintenanceMode: siteSettings.maintenanceMode,
+    },
   });
 
   // Update form when siteSettings change
   useEffect(() => {
-    form.reset(siteSettings);
+    form.reset({
+      siteName: siteSettings.siteName,
+      contactEmail: siteSettings.contactEmail,
+      maintenanceMode: siteSettings.maintenanceMode,
+    });
   }, [siteSettings, form]);
 
-  const onSubmit = (data: SiteSettings) => {
-    console.log('Saving settings:', data);
-    
-    // Update each setting
-    onSettingChange('siteName', data.siteName);
-    onSettingChange('contactEmail', data.contactEmail);
-    onSettingChange('maintenanceMode', data.maintenanceMode);
-    
-    // Save the settings
-    onSaveSettings();
+  const onSubmit = (data: any) => {
+    console.log('Saving general settings:', data);
+    saveSiteSettings();
   };
 
-  const handleContactInfoChange = (field: string, value: string) => {
-    onSettingChange(field, value);
+  const handleContactInfoChange = (section: string, field: string, value: string) => {
+    updateContactInfo(section, field, value);
   };
 
   return (
     <div className="space-y-6">
-      <h2 className="text-2xl font-bold">Website Settings</h2>
+      <div className="flex items-center justify-between">
+        <h2 className="text-2xl font-bold">Website Settings</h2>
+        {hasUnsavedChanges && (
+          <span className="text-sm text-amber-600 font-medium">
+            You have unsaved changes
+          </span>
+        )}
+      </div>
       
       <Tabs defaultValue="general" className="w-full">
         <TabsList className="grid w-full grid-cols-2">
@@ -112,7 +84,14 @@ export const AdminSettings = ({ siteSettings, onSettingChange, onSaveSettings }:
                       <FormItem>
                         <FormLabel>Site Name</FormLabel>
                         <FormControl>
-                          <Input {...field} placeholder="Enter site name" />
+                          <Input 
+                            {...field} 
+                            placeholder="Enter site name"
+                            onChange={(e) => {
+                              field.onChange(e);
+                              updateSiteName(e.target.value);
+                            }}
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -133,7 +112,15 @@ export const AdminSettings = ({ siteSettings, onSettingChange, onSaveSettings }:
                       <FormItem>
                         <FormLabel>Contact Email</FormLabel>
                         <FormControl>
-                          <Input {...field} type="email" placeholder="Enter contact email" />
+                          <Input 
+                            {...field} 
+                            type="email" 
+                            placeholder="Enter contact email"
+                            onChange={(e) => {
+                              field.onChange(e);
+                              updateContactEmail(e.target.value);
+                            }}
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -154,7 +141,10 @@ export const AdminSettings = ({ siteSettings, onSettingChange, onSaveSettings }:
                         <FormControl>
                           <Switch
                             checked={field.value}
-                            onCheckedChange={field.onChange}
+                            onCheckedChange={(checked) => {
+                              field.onChange(checked);
+                              updateMaintenanceMode(checked);
+                            }}
                           />
                         </FormControl>
                       </FormItem>
@@ -177,7 +167,7 @@ export const AdminSettings = ({ siteSettings, onSettingChange, onSaveSettings }:
               onContactInfoChange={handleContactInfoChange}
             />
             
-            <Button onClick={onSaveSettings} className="w-full">
+            <Button onClick={saveSiteSettings} className="w-full">
               Save Contact Information
             </Button>
           </div>

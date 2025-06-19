@@ -13,7 +13,6 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { Shield } from "lucide-react";
 import { Navigate } from "react-router-dom";
-import { useSiteSettings } from "@/contexts/SiteSettingsContext";
 import {
   AdminCreateShipment,
   ExpressUser,
@@ -34,8 +33,6 @@ interface Stats{
 const AdminPanel = () => {
   const { user, isAdmin } = useAuth();
   const { toast } = useToast();
-  const { siteSettings, updateSiteSettings, saveSiteSettings } =
-    useSiteSettings();
   const [activeTab, setActiveTab] = useState("dashboard");
   const [isShipmentFormOpen, setIsShipmentFormOpen] = useState(false);
   const [isNotificationDialogOpen, setIsNotificationDialogOpen] =
@@ -253,31 +250,6 @@ const handleShipmentSubmit = useCallback(
       }
     },[shipments,toast])
 
-  const handleSaveSettings = () => {
-    saveSiteSettings();
-  };
-
-  const handleSettingChange = (field: string, value: string | boolean) => {
-    if (field.startsWith('contactInfo.')) {
-      // Handle nested contactInfo updates
-      const keys = field.split('.');
-      const section = keys[1]; // e.g., 'headquarters', 'phoneNumbers'
-      const property = keys[2]; // e.g., 'address', 'customerService'
-      
-      updateSiteSettings({
-        contactInfo: {
-          ...siteSettings.contactInfo,
-          [section]: {
-            ...siteSettings.contactInfo[section as keyof typeof siteSettings.contactInfo],
-            [property]: value
-          }
-        }
-      });
-    } else {
-      updateSiteSettings({ [field]: value });
-    }
-  };
-
   const handleRestrictUser = (userId: string) => {
     console.log("Restricting user:", userId);
     setUsers(
@@ -375,11 +347,7 @@ const handleShipmentSubmit = useCallback(
                 />
               )}
               {activeTab === "settings" && (
-                <AdminSettings
-                  siteSettings={siteSettings}
-                  onSettingChange={handleSettingChange}
-                  onSaveSettings={handleSaveSettings}
-                />
+                <AdminSettings />
               )}
             </div>
           </div>

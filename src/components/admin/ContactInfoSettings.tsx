@@ -40,12 +40,12 @@ interface ContactInfo {
 
 interface ContactInfoSettingsProps {
   contactInfo: ContactInfo;
-  onContactInfoChange: (field: string, value: string) => void;
+  onContactInfoChange: (section: string, field: string, value: string) => void;
 }
 
 export const ContactInfoSettings = ({ contactInfo, onContactInfoChange }: ContactInfoSettingsProps) => {
   const handleNestedChange = (section: string, field: string, value: string | number) => {
-    onContactInfoChange(`contactInfo.${section}.${field}`, String(value));
+    onContactInfoChange(section, field, String(value));
   };
 
   return (
