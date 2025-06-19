@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Trash2, Ban, LockOpen } from "lucide-react";
+import { ExpressUser } from "@/lib/pocketbase";
 
 interface User {
   id: number;
@@ -17,13 +18,13 @@ interface User {
 }
 
 interface UserEditDialogProps {
-  user: User | null;
+  user: ExpressUser | null;
   isOpen: boolean;
   onClose: () => void;
-  onSave: (userId: number, updates: Partial<User>) => void;
-  onDelete: (userId: number) => void;
-  onRestrict: (userId: number) => void;
-  onUnrestrict: (userId: number) => void;
+  onSave: (userId: string, updates: Partial<ExpressUser>) => void;
+  onDelete: (userId: string) => void;
+  onRestrict: (userId: string) => void;
+  onUnrestrict: (userId: string) => void;
 }
 
 export const UserEditDialog = ({ 
@@ -35,7 +36,7 @@ export const UserEditDialog = ({
   onRestrict, 
   onUnrestrict 
 }: UserEditDialogProps) => {
-  const [editedUser, setEditedUser] = useState<User | null>(null);
+  const [editedUser, setEditedUser] = useState<ExpressUser | null>(null);
 
   // Update local state when user prop changes
   useEffect(() => {
@@ -51,7 +52,7 @@ export const UserEditDialog = ({
       onSave(user.id, {
         name: editedUser.name,
         email: editedUser.email,
-        role: editedUser.role,
+        role: "user",
         status: editedUser.status
       });
       onClose();

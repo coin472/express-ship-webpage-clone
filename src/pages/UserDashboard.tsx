@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
@@ -14,6 +14,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { LogOut } from "lucide-react";
 import { Navigate } from "react-router-dom";
+import { createShipment, FetchShipment, getUserShipments, pb, profileUpdate, ShipmentInput } from "@/lib/pocketbase";
 
 interface Shipment {
   id: string;
@@ -31,19 +32,19 @@ interface Shipment {
 }
 
 const UserDashboard = () => {
-  const { user, logout } = useAuth();
+  const { user, logout, changeUser } = useAuth();
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("overview");
   const [isShipmentFormOpen, setIsShipmentFormOpen] = useState(false);
-  const [selectedShipment, setSelectedShipment] = useState<Shipment | null>(null);
+  const [selectedShipment, setSelectedShipment] = useState<FetchShipment | null>(null);
   const [isShipmentDetailsOpen, setIsShipmentDetailsOpen] = useState(false);
 
   // Profile form state
   const [profileData, setProfileData] = useState({
     name: user?.name || '',
     email: user?.email || '',
-    phone: '',
-    address: ''
+    phone: user?.phone,
+    address: user?.address || '',
   });
 
   // Notification preferences state
@@ -54,31 +55,7 @@ const UserDashboard = () => {
   });
 
   // Shipments state with ability to add new ones
-  const [shipments, setShipments] = useState<Shipment[]>([
-    {
-      id: "ES123456789",
-      destination: "New York, NY",
-      status: "In Transit",
-      estimatedDelivery: "Tomorrow, 3:00 PM",
-      cost: 45.50,
-      trackingUpdates: [
-        { status: "Package received", time: "2 days ago", location: "Los Angeles, CA" },
-        { status: "In transit", time: "1 day ago", location: "Phoenix, AZ" },
-        { status: "Out for delivery", time: "Today, 8:00 AM", location: "New York, NY" }
-      ]
-    },
-    {
-      id: "ES987654321",
-      destination: "Chicago, IL",
-      status: "Delivered",
-      estimatedDelivery: "Delivered yesterday",
-      cost: 32.75,
-      trackingUpdates: [
-        { status: "Package received", time: "3 days ago", location: "Los Angeles, CA" },
-        { status: "Delivered", time: "Yesterday, 2:30 PM", location: "Chicago, IL" }
-      ]
-    }
-  ]);
+  const [shipments, setShipments] = useState<FetchShipment[]>([]);
 
   // Statistics calculation
   const stats = {
@@ -87,10 +64,24 @@ const UserDashboard = () => {
     monthlySpending: shipments.reduce((sum, shipment) => sum + (shipment.cost || 0), 0)
   };
 
+    // useEffect to fetch shipment and assign
+    useEffect(()=>{
+    const fetchShipment = async ()=>{
+      if(!user?.id){
+        return
+      }
+      const records = await getUserShipments(user?.id)
+      setShipments(records)
+  
+    }
+    fetchShipment()
+  },[user?.id])
+
   // Redirect if not logged in
   if (!user) {
     return <Navigate to="/" replace />;
   }
+
 
   const handleLogout = () => {
     logout();
@@ -104,35 +95,43 @@ const UserDashboard = () => {
     setIsShipmentFormOpen(true);
   };
 
-  const handleShipmentSubmit = (shipmentData: any) => {
-    console.log('Creating new shipment:', shipmentData);
-    
-    const newShipment: Shipment = {
-      id: shipmentData.trackingId,
-      destination: `${shipmentData.recipientCity}, ${shipmentData.recipientState}`,
-      status: "Processing",
-      estimatedDelivery: calculateEstimatedDelivery(shipmentData.serviceType),
-      cost: shipmentData.cost,
+  const handleShipmentSubmit = (shipmentData: ShipmentInput) => {
+      const newShipment: ShipmentInput = {
       senderName: shipmentData.senderName,
+      senderPhone: shipmentData.senderPhone,
+      senderAddress: shipmentData.senderAddress,
+      senderCity: shipmentData.senderCity,
+      senderState: shipmentData.senderState,
+      senderZip: shipmentData.senderZip,
       recipientName: shipmentData.recipientName,
-      trackingUpdates: [
-        { 
-          status: "Package received", 
-          time: "Just now", 
-          location: `${shipmentData.senderCity}, ${shipmentData.senderState}` 
-        }
-      ]
-    };
+      recipientPhone: shipmentData.recipientPhone,
+      recipientAddress: shipmentData.recipientAddress,
+      recipientCity: shipmentData.recipientCity,
+      recipientState: shipmentData.recipientState,
+      recipientZip: shipmentData.recipientZip,
+      packageDescription: shipmentData.packageDescription,
+      weight:shipmentData.weight,
+      length:shipmentData.length,
+      width:shipmentData.width,
+      height:shipmentData.height,
+      value:shipmentData.value,
+      serviceType: shipmentData.serviceType,
+      signatureRequired: shipmentData.signatureRequired,
+      insurance: shipmentData.insurance,
+      trackingId: shipmentData.trackingId,
+      cost: shipmentData.cost,
+      user: user.id,
+      status: "processing",
+      }
+      createShipment(newShipment)
 
-    setShipments(prev => [newShipment, ...prev]);
-    
-    toast({
-      title: "Shipment Created Successfully!",
-      description: `Tracking ID: ${shipmentData.trackingId} - Estimated cost: $${shipmentData.cost.toFixed(2)}`
-    });
+      toast({
+        title: "Shipment Created Successfully!",
+        description: `Tracking ID: ${shipmentData.trackingId} - Estimated cost: $${shipmentData.cost.toFixed(2)}`
+      });
   };
 
-  const handleShipmentClick = (shipment: Shipment) => {
+  const handleShipmentClick = (shipment: FetchShipment) => {
     setSelectedShipment(shipment);
     setIsShipmentDetailsOpen(true);
   };
@@ -163,8 +162,9 @@ const UserDashboard = () => {
     });
   };
 
-  const handleSaveProfile = () => {
-    console.log('Saving profile:', profileData);
+  const handleSaveProfile = async () => {
+    const currentUser = await profileUpdate(profileData.name,profileData.address,Number(profileData.phone),user?.id)
+    changeUser(currentUser)
     toast({
       title: "Profile Updated",
       description: "Your profile has been successfully updated."

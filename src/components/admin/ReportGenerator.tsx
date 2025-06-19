@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from "recharts";
-import { Download, FileText, BarChart3 } from "lucide-react";
+import { FileText, BarChart3 } from "lucide-react";
 
 interface ReportData {
   shipmentsByStatus: Array<{ name: string; value: number; color: string }>;
@@ -20,7 +20,6 @@ interface ReportData {
 interface ReportGeneratorProps {
   reportData: ReportData;
   onGenerateReport: () => void;
-  onDownloadReport: () => void;
 }
 
 const chartConfig = {
@@ -38,21 +37,15 @@ const chartConfig = {
   },
 };
 
-export const ReportGenerator = ({ reportData, onGenerateReport, onDownloadReport }: ReportGeneratorProps) => {
+export const ReportGenerator = ({ reportData, onGenerateReport }: ReportGeneratorProps) => {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold">Analytics & Reports</h2>
-        <div className="flex gap-2">
-          <Button onClick={onGenerateReport} variant="outline">
-            <BarChart3 className="mr-2 h-4 w-4" />
-            Generate Report
-          </Button>
-          <Button onClick={onDownloadReport}>
-            <Download className="mr-2 h-4 w-4" />
-            Download PDF
-          </Button>
-        </div>
+        <Button onClick={onGenerateReport} variant="outline">
+          <BarChart3 className="mr-2 h-4 w-4" />
+          Generate Report
+        </Button>
       </div>
 
       {/* Summary Cards */}

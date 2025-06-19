@@ -1,5 +1,7 @@
+import { ExpressUser } from "./pocketbase";
+
 type AdminUser = {
-    id: string;
+  id: string;
   collectionId: string;
   collectionName: string;
   created: string; 
@@ -7,9 +9,12 @@ type AdminUser = {
   email: string; 
   emailVisibility: boolean;
   verified: boolean;
-  name?: string;
-  password: string
+  name: string;
+  password: string;
+  phone: number;
+  address: string
 }
+
 
       export const adminUser: AdminUser = {
       id: '22v1q02cw5g9096',
@@ -21,5 +26,7 @@ type AdminUser = {
       emailVisibility: true,
       verified: true,
       name: 'Admin User',
-      password: "admin123"
+      password: "admin123",
+      phone: 12333383736,
+      address: "adminExpressShip"
     };

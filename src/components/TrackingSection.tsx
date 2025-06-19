@@ -1,19 +1,30 @@
-
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Package, MapPin, Truck, Box } from "lucide-react";
+import { TrackingInput } from "./ui/tracking-input";
+import { useToast } from "@/hooks/use-toast";
+import { useNavigate } from "react-router-dom";
+import { FetchShipment } from "@/lib/pocketbase";
 
-export const TrackingSection = () => {
-  const [trackingNumber, setTrackingNumber] = useState("");
+interface TrackingSectionProps {
+  shipment?: FetchShipment | null;
+}
+
+export const TrackingSection = ({ shipment }: TrackingSectionProps) => {
   const [isTracking, setIsTracking] = useState(false);
+  const { toast } = useToast();
+  const navigate = useNavigate();
 
-  const handleTrack = () => {
-    if (trackingNumber.trim()) {
-      setIsTracking(true);
-      // Simulate API call
-      setTimeout(() => setIsTracking(false), 1000);
-    }
+  const handleTrack = (trackingNumber: string) => {
+    setIsTracking(true);
+    setTimeout(() => {
+      setIsTracking(false);
+      navigate(`/tracking?number=${encodeURIComponent(trackingNumber)}`);
+      toast({
+        title: "Redirecting",
+        description: "Taking you to the tracking page..."
+      });
+    }, 1000);
   };
 
   return (
@@ -35,74 +46,35 @@ export const TrackingSection = () => {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="flex flex-col sm:flex-row gap-4">
-                <input
-                  type="text"
-                  placeholder="Enter tracking number (e.g., ES123456789)"
-                  value={trackingNumber}
-                  onChange={(e) => setTrackingNumber(e.target.value)}
-                  className="flex-1 px-4 py-3 border border-border rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                />
-                <Button 
-                  onClick={handleTrack}
-                  disabled={isTracking}
-                  className="bg-red-600 hover:bg-red-700 text-white px-8"
-                >
-                  {isTracking ? "Tracking..." : "Track"}
-                </Button>
-              </div>
+              <TrackingInput
+                onTrack={handleTrack}
+                isTracking={isTracking}
+                placeholder="Enter tracking number (e.g., ES123456789)"
+                buttonText="Track"
+                showValidation={false}
+              />
             </CardContent>
           </Card>
 
-          {/* Sample tracking result */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Sample Tracking: ES123456789</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-6">
-                <div className="flex items-center justify-between p-4 bg-green-50 rounded-lg border border-green-200">
-                  <div className="flex items-center space-x-3">
-                    <Box className="h-6 w-6 text-green-600" />
-                    <div>
-                      <div className="font-semibold">Delivered</div>
-                      <div className="text-sm text-muted-foreground">Package delivered to recipient</div>
-                    </div>
-                  </div>
-                  <div className="text-sm text-muted-foreground">Today, 2:30 PM</div>
+          {shipment && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Tracking: {shipment.trackingId}</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  <div className="font-semibold">Status: {shipment.serviceType}</div>
+                  <div>Sender: {shipment.senderName} ({shipment.senderCity}, {shipment.senderState})</div>
+                  <div>Recipient: {shipment.recipientName} ({shipment.recipientCity}, {shipment.recipientState})</div>
+                  <div>Package: {shipment.packageDescription} ({shipment.weight}kg, ${shipment.value})</div>
+                  <div>Signature Required: {shipment.signatureRequired}</div>
+                  <div>Insurance: {shipment.insurance}</div>
+                  <div>Cost: ${shipment.cost}</div>
+                  <div>Created: {shipment.created}</div>
                 </div>
-
-                <div className="space-y-4">
-                  <div className="flex items-center space-x-4 p-3 border-l-4 border-yellow-500">
-                    <Truck className="h-5 w-5 text-yellow-500" />
-                    <div className="flex-1">
-                      <div className="font-medium">Out for delivery</div>
-                      <div className="text-sm text-muted-foreground">Package is on the delivery vehicle</div>
-                    </div>
-                    <div className="text-sm text-muted-foreground">Today, 8:30 AM</div>
-                  </div>
-
-                  <div className="flex items-center space-x-4 p-3 border-l-4 border-blue-500">
-                    <MapPin className="h-5 w-5 text-blue-500" />
-                    <div className="flex-1">
-                      <div className="font-medium">Arrived at delivery facility</div>
-                      <div className="text-sm text-muted-foreground">Local delivery center - New York, NY</div>
-                    </div>
-                    <div className="text-sm text-muted-foreground">Yesterday, 6:45 PM</div>
-                  </div>
-
-                  <div className="flex items-center space-x-4 p-3 border-l-4 border-gray-400">
-                    <Package className="h-5 w-5 text-gray-400" />
-                    <div className="flex-1">
-                      <div className="font-medium">Package shipped</div>
-                      <div className="text-sm text-muted-foreground">Origin: Los Angeles, CA</div>
-                    </div>
-                    <div className="text-sm text-muted-foreground">2 days ago, 3:15 PM</div>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          )}
         </div>
       </div>
     </section>

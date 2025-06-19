@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 interface ProfileData {
   name: string;
   email: string;
-  phone: string;
+  phone: number;
   address: string;
 }
 

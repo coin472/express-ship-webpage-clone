@@ -5,6 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Search } from "lucide-react";
+import { FetchShipment } from "@/lib/pocketbase";
 
 interface Shipment {
   id: string;
@@ -15,7 +16,7 @@ interface Shipment {
 }
 
 interface ShipmentManagementProps {
-  shipments: Shipment[];
+  shipments: FetchShipment[];
   onUpdateShipment: (shipmentId: string) => void;
 }
 
@@ -58,9 +59,9 @@ export const ShipmentManagement = ({ shipments, onUpdateShipment }: ShipmentMana
             <TableBody>
               {filteredShipments.map((shipment) => (
                 <TableRow key={shipment.id}>
-                  <TableCell className="font-mono">{shipment.id}</TableCell>
-                  <TableCell>{shipment.customer}</TableCell>
-                  <TableCell>{shipment.destination}</TableCell>
+                  <TableCell className="font-mono">{shipment.trackingId}</TableCell>
+                  <TableCell>{shipment.user}</TableCell>
+                  <TableCell>{shipment.recipientAddress}</TableCell>
                   <TableCell>
                     <span className={`px-2 py-1 rounded-full text-xs ${
                       shipment.status === 'Delivered' ? 'bg-green-100 text-green-800' :
@@ -70,7 +71,7 @@ export const ShipmentManagement = ({ shipments, onUpdateShipment }: ShipmentMana
                       {shipment.status}
                     </span>
                   </TableCell>
-                  <TableCell>{shipment.date}</TableCell>
+                  <TableCell>{shipment.created}</TableCell>
                   <TableCell>
                     <Button 
                       onClick={() => onUpdateShipment(shipment.id)}

@@ -12,6 +12,7 @@ interface AuthContextType {
   register: (email: string, password: string,passwordConfirm:string, name: string) => Promise<boolean>;
   isAdmin?: boolean;
   isLoading: boolean;
+  changeUser: (user: ExpressUser)=>void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -29,7 +30,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [isLoading, setIsLoading] = useState(true);
   const [isAdmin,setIsAdmin] = useState(false)
 
-
+  const changeUser = (user: ExpressUser)=>{
+    setUser(user);
+    localStorage.setItem("user",JSON.stringify(user))
+  }
 
   // Load user from localStorage on mount
   useEffect(() => {
@@ -96,7 +100,7 @@ const login = async (email: string, password: string): Promise<boolean | string>
 
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, isAdmin, register, isLoading }}>
+    <AuthContext.Provider value={{ user, login, logout, isAdmin, register, isLoading, changeUser }}>
       {children}
     </AuthContext.Provider>
   );

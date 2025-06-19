@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { ShipmentForm } from "@/components/ShipmentForm";
@@ -14,38 +14,63 @@ import { useToast } from "@/hooks/use-toast";
 import { Shield } from "lucide-react";
 import { Navigate } from "react-router-dom";
 import { useSiteSettings } from "@/contexts/SiteSettingsContext";
+import {
+  createShipment,
+  ExpressUser,
+  FetchShipment,
+  getShipments,
+  getUsers,
+  pb,
+  ShipmentInput,
+  signUp,
+} from "@/lib/pocketbase";
 
+interface Stats{
+    totalUsers: number,
+    activeShipments: number,
+    revenue: number,
+    deliveryRate: number,
+}
 const AdminPanel = () => {
   const { user, isAdmin } = useAuth();
   const { toast } = useToast();
-  const { siteSettings, updateSiteSettings, saveSiteSettings } = useSiteSettings();
+  const { siteSettings, updateSiteSettings, saveSiteSettings } =
+    useSiteSettings();
   const [activeTab, setActiveTab] = useState("dashboard");
   const [isShipmentFormOpen, setIsShipmentFormOpen] = useState(false);
-  const [isNotificationDialogOpen, setIsNotificationDialogOpen] = useState(false);
+  const [isNotificationDialogOpen, setIsNotificationDialogOpen] =
+    useState(false);
+  const [users, setUsers] = useState<ExpressUser[]>([]);
 
-  // Redirect if not admin
-  if (!isAdmin) {
-    return <Navigate to="/admin-login" replace />;
-  }
+  const handleAddUser = useCallback(
+    async (
+      email: string,
+      password: string,
+      confirmPassword: string,
+      name: string
+    ) => {
+      const newUser = await signUp(email, password, confirmPassword, name);
+      if (newUser) {
+        toast({
+          title: "User Added",
+          description: "New user has been added to the system.",
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: "Failed to add user",
+        });
+      }
+    },
+    [toast]
+  );
+  const [shipments, setShipments] = useState<FetchShipment[]>([]);
 
-  // Mock data with state management
-  const [users, setUsers] = useState([
-    { id: 1, name: "John Doe", email: "john@example.com", role: "user", status: "active" },
-    { id: 2, name: "Jane Smith", email: "jane@example.com", role: "user", status: "active" },
-    { id: 3, name: "Bob Wilson", email: "bob@example.com", role: "user", status: "inactive" },
-  ]);
-
-  const [shipments, setShipments] = useState([
-    { id: "ES123456789", customer: "John Doe", destination: "New York", status: "In Transit", date: "2024-01-15" },
-    { id: "ES987654321", customer: "Jane Smith", destination: "Los Angeles", status: "Delivered", date: "2024-01-14" },
-    { id: "ES456789123", customer: "Bob Wilson", destination: "Chicago", status: "Processing", date: "2024-01-16" },
-  ]);
-
-  const [stats, setStats] = useState({
-    totalUsers: 1234,
-    activeShipments: 567,
-    revenue: 45200,
-    deliveryRate: 98.5
+  const [stats, setStats] = useState<Stats>({
+    totalUsers: 0,
+    revenue: 0,
+    activeShipments: 0,
+    deliveryRate: 0
   });
 
   // Mock report data
@@ -77,123 +102,155 @@ const AdminPanel = () => {
     },
   });
 
-  const handleSendNotification = (notification: { title: string; message: string; type: string }) => {
-    console.log('Sending system notification:', notification);
+const handleShipmentSubmit = useCallback(
+  async (shipmentData: ShipmentInput) => {
+    // const currentUser = user.id
+ const newShipment: ShipmentInput = {
+      senderName: shipmentData.senderName,
+      senderPhone: shipmentData.senderPhone,
+      senderAddress: shipmentData.senderAddress,
+      senderCity: shipmentData.senderCity,
+      senderState: shipmentData.senderState,
+      senderZip: shipmentData.senderZip,
+      recipientName: shipmentData.recipientName,
+      recipientPhone: shipmentData.recipientPhone,
+      recipientAddress: shipmentData.recipientAddress,
+      recipientCity: shipmentData.recipientCity,
+      recipientState: shipmentData.recipientState,
+      recipientZip: shipmentData.recipientZip,
+      packageDescription: shipmentData.packageDescription,
+      weight:shipmentData.weight,
+      length:shipmentData.length,
+      width:shipmentData.width,
+      height:shipmentData.height,
+      value:shipmentData.value,
+      serviceType: shipmentData.serviceType,
+      signatureRequired: shipmentData.signatureRequired,
+      insurance: shipmentData.insurance,
+      trackingId: shipmentData.trackingId,
+      cost: shipmentData.cost,
+      status: "processing",
+      }
+      const record = createShipment(newShipment)
+      if(!record){
+        toast({
+          title: "Shipment not Created!",
+          description: `Failed try again`,
+          variant: "destructive"
+        });
+        return
+      }
+      toast({
+        title: "Shipment Created Successfully!",
+        description: `Tracking ID: ${shipmentData.trackingId} - Estimated cost: $${shipmentData.cost.toFixed(2)}`
+      });
+  },
+  [toast]
+);
+
+  // Mock data with state management
+
+  const handleSendNotification = (notification: {
+    title: string;
+    message: string;
+    type: string;
+  }) => {
+    console.log("Sending system notification:", notification);
     toast({
       title: "Notification Sent Successfully!",
-      description: `"${notification.title}" has been sent to all users.`
+      description: `"${notification.title}" has been sent to all users.`,
     });
   };
 
   const handleOpenNotificationDialog = () => {
-    console.log('Opening notification dialog');
+    console.log("Opening notification dialog");
     setIsNotificationDialogOpen(true);
   };
 
   const handleCreateShipment = () => {
-    console.log('Opening shipment creation form');
+    console.log("Opening shipment creation form");
     setIsShipmentFormOpen(true);
   };
 
-  const handleShipmentSubmit = (shipmentData: any) => {
-    console.log('New shipment created by admin:', shipmentData);
-    
-    // Add the new shipment to the shipments list
-    const newShipment = {
-      id: shipmentData.trackingId,
-      customer: shipmentData.senderName,
-      destination: `${shipmentData.recipientCity}, ${shipmentData.recipientState}`,
-      status: "Processing",
-      date: new Date().toISOString().split('T')[0]
-    };
-    
-    setShipments(prev => [newShipment, ...prev]);
-    
-    // Update stats
-    setStats(prev => ({
-      ...prev,
-      activeShipments: prev.activeShipments + 1,
-      revenue: prev.revenue + shipmentData.cost
-    }));
-
-    toast({
-      title: "Shipment Created Successfully!",
-      description: `Admin created shipment ${shipmentData.trackingId} - Cost: $${shipmentData.cost.toFixed(2)}`
-    });
-  };
-
   const handleGenerateReport = () => {
-    console.log('Generating report');
+    console.log("Generating report");
     toast({
       title: "Report Generated",
-      description: "Monthly report has been generated and will be emailed to you."
+      description:
+        "Monthly report has been generated and will be emailed to you.",
     });
   };
 
-  const handleDownloadReport = () => {
-    console.log('Downloading report as PDF');
-    toast({
-      title: "Report Downloaded",
-      description: "The comprehensive report has been downloaded as PDF."
-    });
-  };
-
-  const handleEditUser = (userId: number, updates: Partial<{ name: string; email: string; role: string; status: string }>) => {
-    console.log('Updating user:', userId, updates);
-    setUsers(users.map(user => 
-      user.id === userId ? { ...user, ...updates } : user
-    ));
+  const handleEditUser = (
+    userId: string,
+    updates: Partial<ExpressUser>
+  ) => {
+    console.log("Updating user:", userId, updates);
+    setUsers(
+      users.map((user) => (user.id === userId ? { ...user, ...updates } : user))
+    );
     toast({
       title: "User Updated",
-      description: `User information has been updated successfully.`
+      description: `User information has been updated successfully.`,
     });
   };
 
-  const handleDeleteUser = (userId: number) => {
-    console.log('Deleting user:', userId);
-    const user = users.find(u => u.id === userId);
-    setUsers(users.filter(u => u.id !== userId));
-    toast({
-      title: "User Deleted",
-      description: `User ${user?.name} has been removed.`,
-      variant: "destructive"
-    });
-  };
+  const handleDeleteUser = useCallback(
+    async (userId: string) => {
+    const user = users?.find(user => user?.id === userId)
+    if(!user){
+      toast({
+        title: "Delete Failed",
+        description: `User can not found`,
+        variant: 'destructive'
+      })
+      return 
+    }
+    const record = await pb.collection("expressUsers").delete(userId)
+    if(!record){
+      toast({
+        title: "failed",
+        description: `${user.name} not succesfully deleted`,
+        variant: "destructive"
+      })
+    }
+    if(record){
+        toast({
+          title: "User Deleted",
+          description: `User ${user?.name} has been removed.`,
+          variant: "destructive",
+        });
+    }
+  },[toast,users]
+  )
 
-  const handleAddUser = () => {
-    console.log('Adding new user');
-    const newUser = {
-      id: users.length + 1,
-      name: "New User",
-      email: "newuser@example.com",
-      role: "user",
-      status: "active"
-    };
-    setUsers([...users, newUser]);
-    toast({
-      title: "User Added",
-      description: "New user has been added to the system."
-    });
-  };
-
-  const handleUpdateShipment = (shipmentId: string) => {
-    console.log('Updating shipment:', shipmentId);
-    const shipment = shipments.find(s => s.id === shipmentId);
-    
-    // Cycle through statuses
-    const statusCycle = ["Processing", "In Transit", "Delivered"];
-    const currentIndex = statusCycle.indexOf(shipment?.status || "Processing");
-    const nextStatus = statusCycle[(currentIndex + 1) % statusCycle.length];
-    
-    setShipments(shipments.map(s => 
-      s.id === shipmentId ? { ...s, status: nextStatus } : s
-    ));
-    
-    toast({
-      title: "Shipment Updated",
-      description: `Shipment ${shipmentId} status changed to ${nextStatus}`
-    });
-  };
+  const changeStatus = (status: string|"processing")=>{
+    if(status==="processing"){
+      return "in transit"
+    }else if(status==="in transit"){
+      return "delivered"
+    }else if(status === "delivered"){
+      return "processing"
+    }else{
+      return "processing"
+    }
+  }
+  const handleUpdateShipment =useCallback(
+    async (shipmentId: string) => {
+      const shipment = shipments.find((s) => s?.id === shipmentId);
+      const status: string = changeStatus(shipment?.status||"processing")
+      const records =  await pb.collection('shipments').update(shipmentId,{
+        ...shipment,
+        status
+      })
+      if(records){
+        toast({
+          title: "Shipment Updated",
+          description: `Shipment ${shipmentId} status changed to ${status}`,
+        });
+  
+      }
+    },[shipments,toast])
 
   const handleSaveSettings = () => {
     saveSiteSettings();
@@ -203,34 +260,59 @@ const AdminPanel = () => {
     updateSiteSettings({ [field]: value });
   };
 
-  const handleRestrictUser = (userId: number) => {
-    console.log('Restricting user:', userId);
-    setUsers(users.map(user => 
-      user.id === userId ? { ...user, status: 'restricted' } : user
-    ));
+  const handleRestrictUser = (userId: string) => {
+    console.log("Restricting user:", userId);
+    setUsers(
+      users.map((user) =>
+        user.id === userId ? { ...user, status: "restricted" } : user
+      )
+    );
     toast({
       title: "User Restricted",
       description: "User access has been restricted.",
-      variant: "destructive"
+      variant: "destructive",
     });
   };
 
-  const handleUnrestrictUser = (userId: number) => {
-    console.log('Unrestricting user:', userId);
-    setUsers(users.map(user => 
-      user.id === userId ? { ...user, status: 'active' } : user
-    ));
+  const handleUnrestrictUser = (userId: string) => {
+    console.log("Unrestricting user:", userId);
+    setUsers(
+      users.map((user) =>
+        user.id === userId ? { ...user, status: "active" } : user
+      )
+    );
     toast({
       title: "User Unrestricted",
-      description: "User access has been restored."
+      description: "User access has been restored.",
     });
   };
 
+  useEffect(() => {
+    getUsers().then((users) => {
+      setUsers(users);
+    });
+    getShipments().then((shipments) => {
+      setShipments(shipments);
+    });
+    const user = users
+    const shipment = shipments
+    setStats({
+      totalUsers: user.length,
+      revenue: shipments.reduce((acct,item)=>acct + item.cost, 0),
+      deliveryRate: 98.5,
+      activeShipments: shipment.length,
+    })
+  }, [handleAddUser, handleShipmentSubmit,handleUpdateShipment,handleDeleteUser,shipments,users]);
+
+  // Redirect if not admin
+  if (!isAdmin) {
+    return <Navigate to="/admin-login" replace />;
+  }
   return (
     <>
       <div className="min-h-screen bg-background">
         <Header />
-        
+
         <main className="container mx-auto px-4 py-8">
           <div className="mb-8">
             <div className="flex items-center mb-4">
@@ -241,14 +323,11 @@ const AdminPanel = () => {
           </div>
 
           <div className="flex flex-col lg:flex-row gap-6">
-            <AdminSidebar 
-              activeTab={activeTab}
-              onTabChange={setActiveTab}
-            />
+            <AdminSidebar activeTab={activeTab} onTabChange={setActiveTab} />
 
             <div className="flex-1">
               {activeTab === "dashboard" && (
-                <AdminDashboard 
+                <AdminDashboard
                   stats={stats}
                   onOpenNotificationDialog={handleOpenNotificationDialog}
                   onCreateShipment={handleCreateShipment}
@@ -256,7 +335,7 @@ const AdminPanel = () => {
                 />
               )}
               {activeTab === "users" && (
-                <UserManagement 
+                <UserManagement
                   users={users}
                   onEditUser={handleEditUser}
                   onDeleteUser={handleDeleteUser}
@@ -266,20 +345,19 @@ const AdminPanel = () => {
                 />
               )}
               {activeTab === "shipments" && (
-                <ShipmentManagement 
+                <ShipmentManagement
                   shipments={shipments}
                   onUpdateShipment={handleUpdateShipment}
                 />
               )}
               {activeTab === "reports" && (
-                <ReportGenerator 
+                <ReportGenerator
                   reportData={reportData}
                   onGenerateReport={handleGenerateReport}
-                  onDownloadReport={handleDownloadReport}
                 />
               )}
               {activeTab === "settings" && (
-                <AdminSettings 
+                <AdminSettings
                   siteSettings={siteSettings}
                   onSettingChange={handleSettingChange}
                   onSaveSettings={handleSaveSettings}

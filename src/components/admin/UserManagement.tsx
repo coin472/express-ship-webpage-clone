@@ -5,6 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Edit, Trash2, UserPlus } from "lucide-react";
 import { UserEditDialog } from "./UserEditDialog";
+import { ExpressUser } from "@/lib/pocketbase";
 
 interface User {
   id: number;
@@ -15,26 +16,27 @@ interface User {
 }
 
 interface UserManagementProps {
-  users: User[];
-  onEditUser: (userId: number, updates: Partial<User>) => void;
-  onDeleteUser: (userId: number) => void;
-  onAddUser: () => void;
-  onRestrictUser: (userId: number) => void;
-  onUnrestrictUser: (userId: number) => void;
+  users: ExpressUser[];
+  onEditUser: (userId: string, updates: Partial<ExpressUser>) => void;
+  onDeleteUser: (userId: string) => void;
+  onAddUser?: (email: string,password: string,confirmPassword:string,name:string) => void;
+  onRestrictUser: (userId:string) => void;
+  onUnrestrictUser: (userId: string) => void;
 }
 
 export const UserManagement = ({ 
   users, 
   onEditUser, 
   onDeleteUser, 
-  onAddUser, 
+  // onAddUser, 
   onRestrictUser, 
   onUnrestrictUser 
 }: UserManagementProps) => {
-  const [editingUser, setEditingUser] = useState<User | null>(null);
+  const [editingUser, setEditingUser] = useState<ExpressUser | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
 
-  const handleEditClick = (userId: number) => {
+  const handleEditClick = (userId: string) => {
+    console.log(users)
     const user = users.find(u => u.id === userId);
     if (user) {
       setEditingUser(user);
@@ -42,7 +44,7 @@ export const UserManagement = ({
     }
   };
 
-  const handleSaveUser = (userId: number, updates: Partial<User>) => {
+  const handleSaveUser = (userId: string, updates: Partial<ExpressUser>) => {
     onEditUser(userId, updates);
     setIsEditDialogOpen(false);
     setEditingUser(null);
@@ -58,10 +60,10 @@ export const UserManagement = ({
       <div className="space-y-4">
         <div className="flex justify-between items-center">
           <h2 className="text-2xl font-bold">User Management</h2>
-          <Button onClick={onAddUser}>
+          {/* <Button onClick={onAddUser}>
             <UserPlus className="mr-2 h-4 w-4" />
             Add User
-          </Button>
+          </Button> */}
         </div>
         
         <Card>
@@ -81,15 +83,15 @@ export const UserManagement = ({
                   <TableRow key={user.id}>
                     <TableCell>{user.name}</TableCell>
                     <TableCell>{user.email}</TableCell>
-                    <TableCell>{user.role}</TableCell>
+                    <TableCell>user</TableCell>
                     <TableCell>
                       <span className={`px-2 py-1 rounded-full text-xs ${
-                        user.status === 'active' ? 'bg-green-100 text-green-800' : 
-                        user.status === 'restricted' ? 'bg-orange-100 text-orange-800' :
-                        user.status === 'suspended' ? 'bg-purple-100 text-purple-800' :
+                        user?.status === 'active' ? 'bg-green-100 text-green-800' : 
+                        user?.status === 'restricted' ? 'bg-orange-100 text-orange-800' :
+                        user?.status === 'suspended' ? 'bg-purple-100 text-purple-800' :
                         'bg-red-100 text-red-800'
                       }`}>
-                        {user.status}
+                        {user?.status}
                       </span>
                     </TableCell>
                     <TableCell>
@@ -102,7 +104,7 @@ export const UserManagement = ({
                           <Edit className="h-3 w-3" />
                         </Button>
                         <Button 
-                          onClick={() => onDeleteUser(user.id)}
+                          onClick={() => onDeleteUser(user?.id)}
                           variant="outline" 
                           size="sm"
                           className="text-red-600"

@@ -2,6 +2,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Package, Truck, Box, MapPin } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const services = [
   {
@@ -35,6 +36,12 @@ const services = [
 ];
 
 export const Services = () => {
+  const navigate = useNavigate();
+
+  const handleLearnMore = () => {
+    navigate('/services');
+  };
+
   return (
     <section className="py-20 bg-background">
       <div className="container mx-auto px-4">
@@ -68,7 +75,7 @@ export const Services = () => {
                 
                 <div className="pt-4 border-t">
                   <div className="text-lg font-semibold text-red-600 mb-3">{service.price}</div>
-                  <Button className="w-full" variant="outline">
+                  <Button className="w-full" variant="outline" onClick={handleLearnMore}>
                     Learn More
                   </Button>
                 </div>
