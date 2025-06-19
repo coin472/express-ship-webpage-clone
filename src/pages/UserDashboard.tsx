@@ -59,8 +59,8 @@ const UserDashboard = () => {
 
   // Statistics calculation
   const stats = {
-    activeShipments: shipments.filter(s => s.status !== "Delivered").length,
-    totalDeliveries: shipments.filter(s => s.status === "Delivered").length,
+    activeShipments: shipments.filter(s => s.status !== "delivered").length,
+    totalDeliveries: shipments.filter(s => s.status === "delivered").length,
     monthlySpending: shipments.reduce((sum, shipment) => sum + (shipment.cost || 0), 0)
   };
 
@@ -124,11 +124,10 @@ const UserDashboard = () => {
       status: "processing",
       }
       createShipment(newShipment)
-
-      toast({
-        title: "Shipment Created Successfully!",
-        description: `Tracking ID: ${shipmentData.trackingId} - Estimated cost: $${shipmentData.cost.toFixed(2)}`
-      });
+        toast({
+          title: "Shipment Created Successfully!",
+          description: `Tracking ID: ${shipmentData.trackingId} - Estimated cost: $${shipmentData.cost.toFixed(2)}`
+        });
   };
 
   const handleShipmentClick = (shipment: FetchShipment) => {

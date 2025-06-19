@@ -74,7 +74,7 @@ export const UserManagement = ({
                   <TableHead>Name</TableHead>
                   <TableHead>Email</TableHead>
                   <TableHead>Role</TableHead>
-                  <TableHead>Status</TableHead>
+                  {/* <TableHead>Status</TableHead> */}
                   <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -84,7 +84,7 @@ export const UserManagement = ({
                     <TableCell>{user.name}</TableCell>
                     <TableCell>{user.email}</TableCell>
                     <TableCell>user</TableCell>
-                    <TableCell>
+                    {/* <TableCell>
                       <span className={`px-2 py-1 rounded-full text-xs ${
                         user?.status === 'active' ? 'bg-green-100 text-green-800' : 
                         user?.status === 'restricted' ? 'bg-orange-100 text-orange-800' :
@@ -93,7 +93,7 @@ export const UserManagement = ({
                       }`}>
                         {user?.status}
                       </span>
-                    </TableCell>
+                    </TableCell> */}
                     <TableCell>
                       <div className="flex space-x-2">
                         <Button 

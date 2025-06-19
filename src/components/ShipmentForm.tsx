@@ -10,7 +10,7 @@ import { FormCheckbox } from "@/components/ui/form-checkbox";
 import { useToast } from "@/hooks/use-toast";
 import { Package, Truck, Clock } from "lucide-react";
 
-interface ShipmentData {
+export interface ShipmentData {
   // Sender Information
   senderName: string;
   senderPhone: string;
@@ -34,7 +34,8 @@ interface ShipmentData {
   width: number;
   height: number;
   value: number;
-  
+  cost?: number;
+  trackingId?: string;
   // Service Options
   serviceType: string;
   signatureRequired: boolean;
@@ -44,7 +45,7 @@ interface ShipmentData {
 interface ShipmentFormProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (data: ShipmentData & { cost: number; trackingId: string }) => void;
+  onSubmit: (data: ShipmentData) => void;
 }
 
 export const ShipmentForm = ({ isOpen, onClose, onSubmit }: ShipmentFormProps) => {
@@ -193,7 +194,6 @@ export const ShipmentForm = ({ isOpen, onClose, onSubmit }: ShipmentFormProps) =
     const trackingId = generateTrackingId();
     
     onSubmit({ ...formData, cost, trackingId });
-    
     toast({
       title: "Shipment Created Successfully!",
       description: `Your tracking ID is ${trackingId}. Estimated cost: $${cost.toFixed(2)}`,
@@ -237,9 +237,9 @@ export const ShipmentForm = ({ isOpen, onClose, onSubmit }: ShipmentFormProps) =
   const prevStep = () => setStep(step - 1);
 
   const serviceOptions = [
-    { value: "Express", label: "Express (1-2 days)", icon: Clock, color: "text-red-600" },
-    { value: "Standard", label: "Standard (3-5 days)", icon: Truck, color: "text-blue-600" },
-    { value: "Economy", label: "Economy (7-10 days)", icon: Package, color: "text-green-600" },
+    { value: "express", label: "Express (1-2 days)", icon: Clock, color: "text-red-600" },
+    { value: "standard", label: "Standard (3-5 days)", icon: Truck, color: "text-blue-600" },
+    { value: "economy", label: "Economy (7-10 days)", icon: Package, color: "text-green-600" },
   ];
 
   const estimatedCost = calculateCost();

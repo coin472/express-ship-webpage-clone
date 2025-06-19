@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
-import { ShipmentForm } from "@/components/ShipmentForm";
+import { ShipmentData, ShipmentForm } from "@/components/ShipmentForm";
 import { SystemNotificationDialog } from "@/components/SystemNotificationDialog";
 import { AdminDashboard } from "@/components/admin/AdminDashboard";
 import { UserManagement } from "@/components/admin/UserManagement";
@@ -15,7 +15,7 @@ import { Shield } from "lucide-react";
 import { Navigate } from "react-router-dom";
 import { useSiteSettings } from "@/contexts/SiteSettingsContext";
 import {
-  createShipment,
+  AdminCreateShipment,
   ExpressUser,
   FetchShipment,
   getShipments,
@@ -103,8 +103,8 @@ const AdminPanel = () => {
   });
 
 const handleShipmentSubmit = useCallback(
-  async (shipmentData: ShipmentInput) => {
-    // const currentUser = user.id
+  async (shipmentData: ShipmentData) => {
+    const currentUser = user
  const newShipment: ShipmentInput = {
       senderName: shipmentData.senderName,
       senderPhone: shipmentData.senderPhone,
@@ -128,10 +128,11 @@ const handleShipmentSubmit = useCallback(
       signatureRequired: shipmentData.signatureRequired,
       insurance: shipmentData.insurance,
       trackingId: shipmentData.trackingId,
+      user: currentUser.id,
       cost: shipmentData.cost,
       status: "processing",
       }
-      const record = createShipment(newShipment)
+      const record = AdminCreateShipment(newShipment)
       if(!record){
         toast({
           title: "Shipment not Created!",
@@ -145,7 +146,7 @@ const handleShipmentSubmit = useCallback(
         description: `Tracking ID: ${shipmentData.trackingId} - Estimated cost: $${shipmentData.cost.toFixed(2)}`
       });
   },
-  [toast]
+  [toast,user]
 );
 
   // Mock data with state management

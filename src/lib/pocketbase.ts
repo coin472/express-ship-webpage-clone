@@ -87,7 +87,7 @@ export interface ShipmentInput {
   status: "processing"|"in transit"|"delivered";
 }
 
-// export const currentUserId = pb.authStore.export()?.model?.id;
+
 
 
 export const signUp = async (
@@ -197,9 +197,45 @@ export const createShipment = async (newShipment: ShipmentInput) => {
     };
 
     const create = await pb.collection("shipments").create(shipment);
-    if (!create.ok) {
-      return console.log("failed request") ;
-    }
+    return create;
+  } catch (error) {
+    console.log(error);
+  }
+};
+export const AdminCreateShipment = async (newShipment: ShipmentInput) => {
+  try {
+    const shipment: ShipmentInput = {
+      senderName:  newShipment.senderName,
+      senderPhone:  newShipment.senderPhone,
+      senderAddress:  newShipment.senderAddress,
+      senderCity:  newShipment.senderCity,
+      senderState:  newShipment.senderState,
+      senderZip:  newShipment.senderZip,
+
+      recipientName:  newShipment.recipientName,
+      recipientPhone:  newShipment.recipientPhone,
+      recipientAddress:  newShipment.recipientAddress,
+      recipientCity:  newShipment.recipientCity,
+      recipientState:  newShipment.recipientState,
+      recipientZip:  newShipment.recipientZip,
+
+      packageDescription:  newShipment.packageDescription,
+      weight:  newShipment.weight,
+      length:  newShipment.length,
+      width:  newShipment.width,
+      height:  newShipment.height,
+      value:  newShipment.value,
+      cost: newShipment.cost,
+      trackingId: newShipment.trackingId,
+
+      serviceType:  newShipment.serviceType,
+      signatureRequired:  newShipment.signatureRequired,
+      insurance:  newShipment.insurance,
+      status: newShipment.status
+
+    };
+
+    const create = await pb.collection("shipments").create(shipment);
     return create;
   } catch (error) {
     console.log(error);
