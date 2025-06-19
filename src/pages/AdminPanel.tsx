@@ -258,7 +258,24 @@ const handleShipmentSubmit = useCallback(
   };
 
   const handleSettingChange = (field: string, value: string | boolean) => {
-    updateSiteSettings({ [field]: value });
+    if (field.startsWith('contactInfo.')) {
+      // Handle nested contactInfo updates
+      const keys = field.split('.');
+      const section = keys[1]; // e.g., 'headquarters', 'phoneNumbers'
+      const property = keys[2]; // e.g., 'address', 'customerService'
+      
+      updateSiteSettings({
+        contactInfo: {
+          ...siteSettings.contactInfo,
+          [section]: {
+            ...siteSettings.contactInfo[section as keyof typeof siteSettings.contactInfo],
+            [property]: value
+          }
+        }
+      });
+    } else {
+      updateSiteSettings({ [field]: value });
+    }
   };
 
   const handleRestrictUser = (userId: string) => {

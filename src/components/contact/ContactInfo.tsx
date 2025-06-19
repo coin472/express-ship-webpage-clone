@@ -1,8 +1,12 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { MapPin, Phone, Mail, Clock } from "lucide-react";
+import { useSiteSettings } from "@/contexts/SiteSettingsContext";
 
 export const ContactInfo = () => {
+  const { siteSettings } = useSiteSettings();
+  const { contactInfo } = siteSettings;
+
   return (
     <div className="space-y-8">
       <Card>
@@ -15,15 +19,24 @@ export const ContactInfo = () => {
         <CardContent className="space-y-4">
           <div>
             <h4 className="font-semibold">Headquarters</h4>
-            <p className="text-muted-foreground">123 Logistics Avenue<br />New York, NY 10001</p>
+            <p className="text-muted-foreground">
+              {contactInfo.headquarters.address}<br />
+              {contactInfo.headquarters.city}, {contactInfo.headquarters.state} {contactInfo.headquarters.zip}
+            </p>
           </div>
           <div>
             <h4 className="font-semibold">West Coast Hub</h4>
-            <p className="text-muted-foreground">456 Shipping Blvd<br />Los Angeles, CA 90210</p>
+            <p className="text-muted-foreground">
+              {contactInfo.westCoastHub.address}<br />
+              {contactInfo.westCoastHub.city}, {contactInfo.westCoastHub.state} {contactInfo.westCoastHub.zip}
+            </p>
           </div>
           <div>
             <h4 className="font-semibold">International Center</h4>
-            <p className="text-muted-foreground">789 Global Way<br />Miami, FL 33101</p>
+            <p className="text-muted-foreground">
+              {contactInfo.internationalCenter.address}<br />
+              {contactInfo.internationalCenter.city}, {contactInfo.internationalCenter.state} {contactInfo.internationalCenter.zip}
+            </p>
           </div>
         </CardContent>
       </Card>
@@ -38,15 +51,15 @@ export const ContactInfo = () => {
         <CardContent className="space-y-3">
           <div>
             <h4 className="font-semibold">Customer Service</h4>
-            <p className="text-muted-foreground">1-800-EXPRESS (1-800-397-7377)</p>
+            <p className="text-muted-foreground">{contactInfo.phoneNumbers.customerService}</p>
           </div>
           <div>
             <h4 className="font-semibold">Business Solutions</h4>
-            <p className="text-muted-foreground">1-800-BUSINESS (1-800-287-4637)</p>
+            <p className="text-muted-foreground">{contactInfo.phoneNumbers.businessSolutions}</p>
           </div>
           <div>
             <h4 className="font-semibold">International</h4>
-            <p className="text-muted-foreground">1-800-GLOBAL-1 (1-800-456-2251)</p>
+            <p className="text-muted-foreground">{contactInfo.phoneNumbers.international}</p>
           </div>
         </CardContent>
       </Card>
@@ -61,15 +74,15 @@ export const ContactInfo = () => {
         <CardContent className="space-y-2">
           <div className="flex justify-between">
             <span>Monday - Friday</span>
-            <span>8:00 AM - 6:00 PM EST</span>
+            <span>{contactInfo.businessHours.mondayFriday}</span>
           </div>
           <div className="flex justify-between">
             <span>Saturday</span>
-            <span>9:00 AM - 4:00 PM EST</span>
+            <span>{contactInfo.businessHours.saturday}</span>
           </div>
           <div className="flex justify-between">
             <span>Sunday</span>
-            <span>Closed</span>
+            <span>{contactInfo.businessHours.sunday}</span>
           </div>
         </CardContent>
       </Card>
@@ -84,15 +97,15 @@ export const ContactInfo = () => {
         <CardContent className="space-y-3">
           <div>
             <h4 className="font-semibold">General Support</h4>
-            <p className="text-muted-foreground">support@expressship.com</p>
+            <p className="text-muted-foreground">{contactInfo.emailAddresses.generalSupport}</p>
           </div>
           <div>
             <h4 className="font-semibold">Sales Inquiries</h4>
-            <p className="text-muted-foreground">sales@expressship.com</p>
+            <p className="text-muted-foreground">{contactInfo.emailAddresses.salesInquiries}</p>
           </div>
           <div>
             <h4 className="font-semibold">Technical Support</h4>
-            <p className="text-muted-foreground">tech@expressship.com</p>
+            <p className="text-muted-foreground">{contactInfo.emailAddresses.technicalSupport}</p>
           </div>
         </CardContent>
       </Card>
