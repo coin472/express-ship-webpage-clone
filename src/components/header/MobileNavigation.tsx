@@ -11,7 +11,7 @@ interface MobileNavigationProps {
 }
 
 export const MobileNavigation = ({ isOpen, onShipNow }: MobileNavigationProps) => {
-  const { user, logout } = useAuth();
+  const { user, logout, isAdmin } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -52,7 +52,7 @@ export const MobileNavigation = ({ isOpen, onShipNow }: MobileNavigationProps) =
         <div className="flex flex-col space-y-2 pt-4">
           {user ? (
             <>
-              {user.role === 'admin' ? (
+              {isAdmin ? (
                 <Link to="/admin-panel">
                   <Button variant="outline" className="w-full">Admin Panel</Button>
                 </Link>
